@@ -6,7 +6,7 @@ using FontAwesome.Sharp;
 
 namespace SekaiPOS_1._0
 {
-    public partial class MainDashboard : Form
+    public class MainDashboardFixed : Form
     {
         private DatabaseHelper db;
         private Panel leftMenuPanel = null!;
@@ -26,19 +26,21 @@ namespace SekaiPOS_1._0
         private IconPictureBox iconCurrentForm = null!;
         private System.Windows.Forms.Timer dateTimeTimer = null!;
 
-        public MainDashboard()
+        public MainDashboardFixed()
         {
             db = new DatabaseHelper();
             InitializeComponent();
         }
 
-        private void MainDashboard_Load(object? sender, EventArgs e)
+        private void InitializeComponent()
         {
-            SetupUI();
-        }
+            this.Text = "Sekai POS - Dashboard";
+            this.Size = new Size(1400, 800);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.MinimumSize = new Size(1280, 720);
+            this.BackColor = Color.FromArgb(15, 15, 15);
+            this.WindowState = FormWindowState.Maximized;
 
-        private void SetupUI()
-        {
             // Left Menu Panel
             leftMenuPanel = new Panel()
             {
@@ -47,6 +49,7 @@ namespace SekaiPOS_1._0
                 Size = new Size(250, this.ClientSize.Height)
             };
 
+            // Logo Panel
             var logoPanel = new Panel()
             {
                 Size = new Size(250, 140),
@@ -88,12 +91,14 @@ namespace SekaiPOS_1._0
             logoPanel.Controls.Add(lblLogo);
             logoPanel.Controls.Add(lblSubtitle);
 
+            // Menu Buttons
             btnDashboard = CreateMenuButton(IconChar.ChartLine, "Dashboard", 160);
             btnInventory = CreateMenuButton(IconChar.BoxesStacked, "Inventario", 230);
             btnSales = CreateMenuButton(IconChar.CashRegister, "Ventas", 300);
             btnReports = CreateMenuButton(IconChar.FileInvoiceDollar, "Reportes", 370);
             btnSettings = CreateMenuButton(IconChar.Gear, "Configuración", 440);
 
+            // Left border indicator
             leftBorderBtn = new Panel()
             {
                 Size = new Size(5, 70),
@@ -109,6 +114,7 @@ namespace SekaiPOS_1._0
             leftMenuPanel.Controls.Add(btnReports);
             leftMenuPanel.Controls.Add(btnSettings);
 
+            // Top Panel
             topPanel = new Panel()
             {
                 Dock = DockStyle.Top,
@@ -198,6 +204,7 @@ namespace SekaiPOS_1._0
             topPanel.Controls.Add(lblUserInfo);
             topPanel.Controls.Add(btnLogout);
 
+            // Content Panel
             contentPanel = new Panel()
             {
                 Dock = DockStyle.Fill,
@@ -209,6 +216,7 @@ namespace SekaiPOS_1._0
             this.Controls.Add(topPanel);
             this.Controls.Add(leftMenuPanel);
 
+            // Events
             btnDashboard.Click += (s, e) => { ActivateButton(s); OpenDashboardHome(); };
             btnInventory.Click += (s, e) => { ActivateButton(s); OpenInventoryForm(); };
             btnSales.Click += (s, e) => { ActivateButton(s); OpenSalesForm(); };
@@ -392,7 +400,7 @@ namespace SekaiPOS_1._0
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error al abrir inventario: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -405,7 +413,7 @@ namespace SekaiPOS_1._0
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error al abrir ventas: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -418,7 +426,7 @@ namespace SekaiPOS_1._0
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error al abrir reportes: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
