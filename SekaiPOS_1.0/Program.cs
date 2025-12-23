@@ -16,7 +16,7 @@ namespace SekaiPOS_1._0
             {
                 if (loginForm.ShowDialog() == DialogResult.OK)
                 {
-                    Application.Run(new MainDashboardFixed());
+                    Application.Run(new MainDashboardFinal());
                 }
             }
         }

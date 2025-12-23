@@ -52,6 +52,15 @@ namespace SekaiPOS_1._0
                         Subtotal REAL NOT NULL,
                         FOREIGN KEY (SaleId) REFERENCES Sales(Id)
                     );
+                    CREATE TABLE IF NOT EXISTS Settings (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        StoreName TEXT NOT NULL DEFAULT 'SEKAI Tech Store',
+                        Address TEXT NOT NULL DEFAULT 'Av. Principal #123',
+                        Phone TEXT NOT NULL DEFAULT '+1 234 567 8900',
+                        TaxRate REAL NOT NULL DEFAULT 0.16,
+                        Theme TEXT NOT NULL DEFAULT 'Dark',
+                        AccentColor TEXT NOT NULL DEFAULT '#00FF7F'
+                    );
                 ";
                 command.ExecuteNonQuery();
 
@@ -63,6 +72,17 @@ namespace SekaiPOS_1._0
                 {
                     var insertCommand = connection.CreateCommand();
                     insertCommand.CommandText = "INSERT INTO Users (Username, Password, IsAdmin) VALUES ('admin', 'admin123', 1)";
+                    insertCommand.ExecuteNonQuery();
+                }
+
+                // Insert default settings if not exists
+                checkCommand.CommandText = "SELECT COUNT(*) FROM Settings";
+                long settingsCount = (long)checkCommand.ExecuteScalar()!;
+                if (settingsCount == 0)
+                {
+                    var insertCommand = connection.CreateCommand();
+                    insertCommand.CommandText = @"INSERT INTO Settings (StoreName, Address, Phone, TaxRate, Theme, AccentColor) 
+                                                  VALUES ('SEKAI Tech Store', 'Av. Principal #123, Ciudad', '+1 234 567 8900', 0.16, 'Dark', '#00FF7F')";
                     insertCommand.ExecuteNonQuery();
                 }
 
@@ -325,6 +345,107 @@ namespace SekaiPOS_1._0
                 var cmd = connection.CreateCommand();
                 cmd.CommandText = "SELECT COUNT(*) FROM Sales";
                 return Convert.ToInt32((long)cmd.ExecuteScalar()!);
+            }
+        }
+
+        // NEW: Settings methods
+        public (string StoreName, string Address, string Phone, decimal TaxRate) GetSettings()
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "SELECT StoreName, Address, Phone, TaxRate FROM Settings LIMIT 1";
+                
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return (
+                            reader.GetString(0),
+                            reader.GetString(1),
+                            reader.GetString(2),
+                            reader.GetDecimal(3)
+                        );
+                    }
+                }
+            }
+            return ("SEKAI Tech Store", "Av. Principal #123", "+1 234 567 8900", 0.16m);
+        }
+
+        public void UpdateSettings(string storeName, string address, string phone, decimal taxRate)
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = @"UPDATE Settings SET 
+                                   StoreName = @name, 
+                                   Address = @address, 
+                                   Phone = @phone, 
+                                   TaxRate = @tax 
+                                   WHERE Id = 1";
+                cmd.Parameters.AddWithValue("@name", storeName);
+                cmd.Parameters.AddWithValue("@address", address);
+                cmd.Parameters.AddWithValue("@phone", phone);
+                cmd.Parameters.AddWithValue("@tax", taxRate);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public DataTable GetAllUsers()
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "SELECT Id, Username, IsAdmin FROM Users ORDER BY Username";
+                
+                using (var reader = cmd.ExecuteReader())
+                {
+                    var dt = new DataTable();
+                    dt.Load(reader);
+                    return dt;
+                }
+            }
+        }
+
+        public void AddUser(string username, string password, bool isAdmin)
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "INSERT INTO Users (Username, Password, IsAdmin) VALUES (@user, @pass, @admin)";
+                cmd.Parameters.AddWithValue("@user", username);
+                cmd.Parameters.AddWithValue("@pass", password);
+                cmd.Parameters.AddWithValue("@admin", isAdmin ? 1 : 0);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void DeleteUser(int userId)
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "DELETE FROM Users WHERE Id = @id";
+                cmd.Parameters.AddWithValue("@id", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void ChangePassword(string username, string newPassword)
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "UPDATE Users SET Password = @pass WHERE Username = @user";
+                cmd.Parameters.AddWithValue("@pass", newPassword);
+                cmd.Parameters.AddWithValue("@user", username);
+                cmd.ExecuteNonQuery();
             }
         }
     }
