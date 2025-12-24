@@ -286,9 +286,9 @@ namespace SekaiPOS_1._0
                 DisableButton();
                 currentButton = (IconButton)senderBtn;
                 currentButton.BackColor = Color.FromArgb(30, 30, 30);
-                currentButton.ForeColor = Color.FromArgb(0, 255, 127);
-                currentButton.IconColor = Color.FromArgb(0, 255, 127);
-                leftBorderBtn.BackColor = Color.FromArgb(0, 255, 127);
+                currentButton.ForeColor = ThemeManager.CurrentAccentColor;
+                currentButton.IconColor = ThemeManager.CurrentAccentColor;
+                leftBorderBtn.BackColor = ThemeManager.CurrentAccentColor;
                 leftBorderBtn.Location = new Point(0, currentButton.Location.Y);
                 leftBorderBtn.Visible = true;
                 leftBorderBtn.BringToFront();
