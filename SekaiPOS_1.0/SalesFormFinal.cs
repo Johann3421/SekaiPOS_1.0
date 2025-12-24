@@ -4,10 +4,11 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using FontAwesome.Sharp;
+using System.Collections.Generic;
 
 namespace SekaiPOS_1._0
 {
-    public class SalesForm : Form
+    public class SalesFormFinal : Form
     {
         private DatabaseHelper db;
         private DataGridView dgvProducts = null!;
@@ -18,20 +19,26 @@ namespace SekaiPOS_1._0
         private Label lblSubtotal = null!;
         private Label lblTax = null!;
         private ComboBox cmbPayment = null!;
-        private IconButton btnAddToCart = null!;
-        private IconButton btnRemoveFromCart = null!;
-        private IconButton btnCompleteSale = null!;
-        private IconButton btnClearCart = null!;
         private NumericUpDown numQuantity = null!;
+        private IconButton btnOpenRegister = null!;
+        private IconButton btnCloseRegister = null!;
+        private Panel salesPanel = null!;
         
         private List<SaleItem> cartItems = new List<SaleItem>();
-        private const decimal TAX_RATE = 0.16m; // 16% IVA
+        private const decimal TAX_RATE = 0.16m;
 
-        public SalesForm(DatabaseHelper database)
+        public SalesFormFinal(DatabaseHelper database)
         {
+            if (database == null)
+                throw new ArgumentNullException(nameof(database));
+                
             db = database;
             InitializeComponent();
-            LoadProducts();
+            
+            this.Shown += (s, e) => {
+                CheckRegisterStatus();
+                LoadProducts();
+            };
         }
 
         private void InitializeComponent()
@@ -39,26 +46,76 @@ namespace SekaiPOS_1._0
             this.BackColor = Color.FromArgb(15, 15, 15);
             this.Padding = new Padding(20);
 
-            // Products section - Left side
+            // Register Control Buttons
+            btnOpenRegister = new IconButton()
+            {
+                IconChar = IconChar.DoorOpen,
+                IconColor = Color.White,
+                IconSize = 20,
+                Text = "Abrir Caja",
+                Size = new Size(150, 40),
+                Location = new Point(20, 10),
+                BackColor = Color.FromArgb(0, 200, 83),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                TextImageRelation = TextImageRelation.ImageBeforeText,
+                Cursor = Cursors.Hand,
+                Visible = false
+            };
+            btnOpenRegister.FlatAppearance.BorderSize = 0;
+            btnOpenRegister.Click += BtnOpenRegister_Click;
+
+            btnCloseRegister = new IconButton()
+            {
+                IconChar = IconChar.DoorClosed,
+                IconColor = Color.White,
+                IconSize = 20,
+                Text = "Cerrar Caja",
+                Size = new Size(150, 40),
+                Location = new Point(180, 10),
+                BackColor = Color.FromArgb(192, 0, 0),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                TextImageRelation = TextImageRelation.ImageBeforeText,
+                Cursor = Cursors.Hand,
+                Visible = false
+            };
+            btnCloseRegister.FlatAppearance.BorderSize = 0;
+            btnCloseRegister.Click += BtnCloseRegister_Click;
+
+            this.Controls.Add(btnOpenRegister);
+            this.Controls.Add(btnCloseRegister);
+
+            // Container for sales controls to easily enable/disable
+            salesPanel = new Panel()
+            {
+                Location = new Point(0, 60),
+                Size = new Size(1200, 700),
+                BackColor = Color.Transparent
+            };
+            this.Controls.Add(salesPanel);
+
             var lblProductsTitle = new Label()
             {
                 Text = "Catálogo de Productos",
                 Font = new Font("Segoe UI", 14F, FontStyle.Bold),
                 ForeColor = Color.White,
-                Location = new Point(20, 20),
+                Location = new Point(20, 0),
                 AutoSize = true
             };
 
             var searchPanel = new Panel()
             {
                 Size = new Size(600, 50),
-                Location = new Point(20, 60),
+                Location = new Point(20, 40),
                 BackColor = Color.FromArgb(25, 25, 25)
             };
 
             var lblSearch = new Label()
             {
-                Text = "?? Buscar:",
+                Text = "Buscar:",
                 Font = new Font("Segoe UI", 10F, FontStyle.Bold),
                 ForeColor = Color.White,
                 Location = new Point(15, 15),
@@ -110,8 +167,8 @@ namespace SekaiPOS_1._0
 
             dgvProducts = new DataGridView()
             {
-                Location = new Point(20, 125),
-                Size = new Size(600, this.Height - 220),
+                Location = new Point(20, 105),
+                Size = new Size(600, 400),
                 BackgroundColor = Color.FromArgb(25, 25, 25),
                 ForeColor = Color.White,
                 GridColor = Color.FromArgb(50, 50, 50),
@@ -136,28 +193,25 @@ namespace SekaiPOS_1._0
                 AllowUserToAddRows = false,
                 ReadOnly = true,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                RowHeadersVisible = false,
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None,
+                RowHeadersVisible = false
             };
             dgvProducts.DoubleClick += (s, e) => AddSelectedProductToCart();
 
-            // Cart section - Right side
             var lblCartTitle = new Label()
             {
                 Text = "Carrito de Compra",
                 Font = new Font("Segoe UI", 14F, FontStyle.Bold),
                 ForeColor = Color.White,
-                Location = new Point(650, 20),
+                Location = new Point(650, 0),
                 AutoSize = true
             };
 
             var controlsPanel = new Panel()
             {
-                Size = new Size(this.Width - 670, 50),
-                Location = new Point(650, 60),
-                BackColor = Color.FromArgb(25, 25, 25),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+                Size = new Size(500, 50),
+                Location = new Point(650, 40),
+                BackColor = Color.FromArgb(25, 25, 25)
             };
 
             var lblQty = new Label()
@@ -182,7 +236,7 @@ namespace SekaiPOS_1._0
                 Value = 1
             };
 
-            btnAddToCart = new IconButton()
+            var btnAddToCart = new IconButton()
             {
                 IconChar = IconChar.CartPlus,
                 IconColor = Color.White,
@@ -206,8 +260,8 @@ namespace SekaiPOS_1._0
 
             dgvCart = new DataGridView()
             {
-                Location = new Point(650, 125),
-                Size = new Size(this.Width - 670, this.Height - 440),
+                Location = new Point(650, 105),
+                Size = new Size(500, 250),
                 BackgroundColor = Color.FromArgb(25, 25, 25),
                 ForeColor = Color.White,
                 GridColor = Color.FromArgb(50, 50, 50),
@@ -231,20 +285,17 @@ namespace SekaiPOS_1._0
                 AllowUserToAddRows = false,
                 ReadOnly = true,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                RowHeadersVisible = false,
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None,
+                RowHeadersVisible = false
             };
 
             InitializeCartGrid();
 
-            // Totals panel
             var totalsPanel = new Panel()
             {
-                Size = new Size(this.Width - 670, 130),
-                Location = new Point(650, this.Height - 290),
-                BackColor = Color.FromArgb(25, 25, 25),
-                Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+                Size = new Size(500, 130),
+                Location = new Point(650, 370),
+                BackColor = Color.FromArgb(25, 25, 25)
             };
 
             lblSubtotal = new Label()
@@ -278,46 +329,42 @@ namespace SekaiPOS_1._0
             totalsPanel.Controls.Add(lblTax);
             totalsPanel.Controls.Add(lblTotal);
 
-            // Payment and action buttons
             var lblPayment = new Label()
             {
                 Text = "Método de Pago:",
                 Font = new Font("Segoe UI", 10F, FontStyle.Bold),
                 ForeColor = Color.White,
-                Location = new Point(650, this.Height - 145),
-                AutoSize = true,
-                Anchor = AnchorStyles.Bottom | AnchorStyles.Left
+                Location = new Point(650, 515),
+                AutoSize = true
             };
 
             cmbPayment = new ComboBox()
             {
-                Location = new Point(800, this.Height - 148),
+                Location = new Point(800, 512),
                 Size = new Size(200, 25),
                 Font = new Font("Segoe UI", 10F),
                 BackColor = Color.FromArgb(35, 35, 35),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Anchor = AnchorStyles.Bottom | AnchorStyles.Left
+                DropDownStyle = ComboBoxStyle.DropDownList
             };
             cmbPayment.Items.AddRange(new[] { "Efectivo", "Tarjeta de Débito", "Tarjeta de Crédito", "Transferencia" });
             cmbPayment.SelectedIndex = 0;
 
-            btnRemoveFromCart = new IconButton()
+            var btnRemoveFromCart = new IconButton()
             {
                 IconChar = IconChar.TrashAlt,
                 IconColor = Color.White,
                 IconSize = 20,
                 Text = "Quitar",
                 Size = new Size(150, 45),
-                Location = new Point(650, this.Height - 95),
+                Location = new Point(650, 555),
                 BackColor = Color.FromArgb(192, 0, 0),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 10F, FontStyle.Bold),
                 TextImageRelation = TextImageRelation.ImageBeforeText,
-                Cursor = Cursors.Hand,
-                Anchor = AnchorStyles.Bottom | AnchorStyles.Left
+                Cursor = Cursors.Hand
             };
             btnRemoveFromCart.FlatAppearance.BorderSize = 0;
             btnRemoveFromCart.Click += (s, e) =>
@@ -330,21 +377,20 @@ namespace SekaiPOS_1._0
                 }
             };
 
-            btnClearCart = new IconButton()
+            var btnClearCart = new IconButton()
             {
                 IconChar = IconChar.Broom,
                 IconColor = Color.White,
                 IconSize = 20,
                 Text = "Limpiar",
                 Size = new Size(150, 45),
-                Location = new Point(820, this.Height - 95),
+                Location = new Point(820, 555),
                 BackColor = Color.FromArgb(100, 100, 100),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 10F, FontStyle.Bold),
                 TextImageRelation = TextImageRelation.ImageBeforeText,
-                Cursor = Cursors.Hand,
-                Anchor = AnchorStyles.Bottom | AnchorStyles.Left
+                Cursor = Cursors.Hand
             };
             btnClearCart.FlatAppearance.BorderSize = 0;
             btnClearCart.Click += (s, e) =>
@@ -353,37 +399,116 @@ namespace SekaiPOS_1._0
                 UpdateCartDisplay();
             };
 
-            btnCompleteSale = new IconButton()
+            var btnCompleteSale = new IconButton()
             {
                 IconChar = IconChar.CheckCircle,
                 IconColor = Color.White,
                 IconSize = 22,
                 Text = "Completar Venta",
-                Size = new Size(this.Width - 1000, 45),
-                Location = new Point(990, this.Height - 95),
+                Size = new Size(150, 45),
+                Location = new Point(990, 555),
                 BackColor = Color.FromArgb(0, 120, 212),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 11F, FontStyle.Bold),
                 TextImageRelation = TextImageRelation.ImageBeforeText,
-                Cursor = Cursors.Hand,
-                Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+                Cursor = Cursors.Hand
             };
             btnCompleteSale.FlatAppearance.BorderSize = 0;
             btnCompleteSale.Click += CompleteSale;
 
-            this.Controls.Add(lblProductsTitle);
-            this.Controls.Add(searchPanel);
-            this.Controls.Add(dgvProducts);
-            this.Controls.Add(lblCartTitle);
-            this.Controls.Add(controlsPanel);
-            this.Controls.Add(dgvCart);
-            this.Controls.Add(totalsPanel);
-            this.Controls.Add(lblPayment);
-            this.Controls.Add(cmbPayment);
-            this.Controls.Add(btnRemoveFromCart);
-            this.Controls.Add(btnClearCart);
-            this.Controls.Add(btnCompleteSale);
+            salesPanel.Controls.Add(lblProductsTitle);
+            salesPanel.Controls.Add(searchPanel);
+            salesPanel.Controls.Add(dgvProducts);
+            salesPanel.Controls.Add(lblCartTitle);
+            salesPanel.Controls.Add(controlsPanel);
+            salesPanel.Controls.Add(dgvCart);
+            salesPanel.Controls.Add(totalsPanel);
+            salesPanel.Controls.Add(lblPayment);
+            salesPanel.Controls.Add(cmbPayment);
+            salesPanel.Controls.Add(btnRemoveFromCart);
+            salesPanel.Controls.Add(btnClearCart);
+            salesPanel.Controls.Add(btnCompleteSale);
+        }
+
+        private void CheckRegisterStatus()
+        {
+            bool isOpen = db.IsRegisterOpen();
+            salesPanel.Enabled = isOpen;
+            btnOpenRegister.Visible = !isOpen;
+            btnCloseRegister.Visible = isOpen;
+
+            if (!isOpen)
+            {
+                MessageBox.Show("La caja está cerrada. Debes abrir caja para realizar ventas.", "Caja Cerrada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void BtnOpenRegister_Click(object? sender, EventArgs e)
+        {
+            using (var dialog = new SimpleInputDialog("Abrir Caja", "Ingrese el monto inicial en caja:"))
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (decimal.TryParse(dialog.InputValue, out decimal startBalance))
+                    {
+                        try
+                        {
+                            var dt = db.GetAllUsers();
+                            int userId = 1; 
+                            foreach(DataRow row in dt.Rows) {
+                                if (row["Username"].ToString() == CurrentUser.Username) {
+                                    userId = Convert.ToInt32(row["Id"]);
+                                    break;
+                                }
+                            }
+
+                            db.OpenRegister(userId, startBalance);
+                            CheckRegisterStatus();
+                            MessageBox.Show("Caja abierta exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Error al abrir caja: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Monto inválido.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+            }
+        }
+
+        private void BtnCloseRegister_Click(object? sender, EventArgs e)
+        {
+            using (var dialog = new SimpleInputDialog("Cerrar Caja", "Ingrese el monto final en caja:"))
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (decimal.TryParse(dialog.InputValue, out decimal endBalance))
+                    {
+                        try
+                        {
+                            int? sessionId = db.GetOpenRegisterSessionId();
+                            if (sessionId.HasValue)
+                            {
+                                db.CloseRegister(sessionId.Value, endBalance);
+                                CheckRegisterStatus();
+                                MessageBox.Show("Caja cerrada exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Error al cerrar caja: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Monto inválido.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+            }
         }
 
         private void InitializeCartGrid()
@@ -394,8 +519,11 @@ namespace SekaiPOS_1._0
             dgvCart.Columns.Add("Price", "Precio Unit.");
             dgvCart.Columns.Add("Subtotal", "Subtotal");
             
+            dgvCart.Columns["ProductName"].Width = 200;
             dgvCart.Columns["Quantity"].Width = 70;
+            dgvCart.Columns["Price"].Width = 100;
             dgvCart.Columns["Price"].DefaultCellStyle.Format = "C2";
+            dgvCart.Columns["Subtotal"].Width = 100;
             dgvCart.Columns["Subtotal"].DefaultCellStyle.Format = "C2";
         }
 
@@ -403,27 +531,55 @@ namespace SekaiPOS_1._0
         {
             try
             {
-                dgvProducts.DataSource = db.GetAllProducts();
+                var dt = db.GetAllProducts();
+                if (dt == null || dt.Rows.Count == 0)
+                {
+                    dgvProducts.DataSource = null;
+                    return;
+                }
+
+                dgvProducts.DataSource = null;
+                dgvProducts.Columns.Clear();
+                dgvProducts.DataSource = dt;
                 
                 if (dgvProducts.Columns.Count > 0)
                 {
-                    dgvProducts.Columns["Id"].Visible = false;
-                    dgvProducts.Columns["Name"].HeaderText = "Producto";
-                    dgvProducts.Columns["Price"].HeaderText = "Precio";
-                    dgvProducts.Columns["Price"].DefaultCellStyle.Format = "C2";
-                    dgvProducts.Columns["Quantity"].HeaderText = "Stock";
-                    dgvProducts.Columns["Quantity"].Width = 70;
+                    if (dgvProducts.Columns.Contains("Id"))
+                        dgvProducts.Columns["Id"].Visible = false;
+                    
+                    if (dgvProducts.Columns.Contains("Name"))
+                    {
+                        dgvProducts.Columns["Name"].HeaderText = "Producto";
+                        dgvProducts.Columns["Name"].Width = 200;
+                    }
+                    
+                    if (dgvProducts.Columns.Contains("Price"))
+                    {
+                        dgvProducts.Columns["Price"].HeaderText = "Precio";
+                        dgvProducts.Columns["Price"].DefaultCellStyle.Format = "C2";
+                        dgvProducts.Columns["Price"].Width = 100;
+                    }
+                    
+                    if (dgvProducts.Columns.Contains("Quantity"))
+                    {
+                        dgvProducts.Columns["Quantity"].HeaderText = "Stock";
+                        dgvProducts.Columns["Quantity"].Width = 70;
+                    }
                     
                     if (dgvProducts.Columns.Contains("Description"))
                         dgvProducts.Columns["Description"].Visible = false;
+                    
                     if (dgvProducts.Columns.Contains("Category"))
                     {
                         dgvProducts.Columns["Category"].HeaderText = "Categoría";
                         dgvProducts.Columns["Category"].Width = 120;
                     }
+                    
                     if (dgvProducts.Columns.Contains("Barcode"))
                         dgvProducts.Columns["Barcode"].Visible = false;
                 }
+
+                dgvProducts.Refresh();
             }
             catch (Exception ex)
             {
@@ -436,16 +592,23 @@ namespace SekaiPOS_1._0
             try
             {
                 var dt = db.GetAllProducts();
+                if (dt == null) return;
+
                 if (!string.IsNullOrWhiteSpace(txtSearch.Text))
                 {
                     var dv = dt.DefaultView;
                     dv.RowFilter = $"Name LIKE '%{txtSearch.Text}%' OR Category LIKE '%{txtSearch.Text}%'";
+                    dgvProducts.DataSource = null;
                     dgvProducts.DataSource = dv.ToTable();
                 }
                 else
                 {
+                    dgvProducts.DataSource = null;
                     dgvProducts.DataSource = dt;
                 }
+
+                if (dgvProducts.Columns.Contains("Price"))
+                    dgvProducts.Columns["Price"].DefaultCellStyle.Format = "C2";
             }
             catch { }
         }
@@ -487,12 +650,15 @@ namespace SekaiPOS_1._0
             if (dgvProducts.SelectedRows.Count > 0)
             {
                 var row = dgvProducts.SelectedRows[0];
-                int id = Convert.ToInt32(row.Cells["Id"].Value);
-                string name = row.Cells["Name"].Value.ToString()!;
-                decimal price = Convert.ToDecimal(row.Cells["Price"].Value);
-                int stock = Convert.ToInt32(row.Cells["Quantity"].Value);
+                if (row.Cells["Id"].Value != null)
+                {
+                    int id = Convert.ToInt32(row.Cells["Id"].Value);
+                    string name = row.Cells["Name"].Value.ToString()!;
+                    decimal price = Convert.ToDecimal(row.Cells["Price"].Value);
+                    int stock = Convert.ToInt32(row.Cells["Quantity"].Value);
 
-                AddProductToCart(id, name, price, stock);
+                    AddProductToCart(id, name, price, stock);
+                }
             }
         }
 
@@ -580,11 +746,9 @@ namespace SekaiPOS_1._0
 
                 MessageBox.Show("Venta completada exitosamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // Print receipt
-                var receiptForm = new ReceiptForm(db, saleId);
+                var receiptForm = new ReceiptFormFinal(db, saleId);
                 receiptForm.ShowDialog();
 
-                // Clear cart
                 cartItems.Clear();
                 UpdateCartDisplay();
                 LoadProducts();
@@ -593,6 +757,71 @@ namespace SekaiPOS_1._0
             {
                 MessageBox.Show("Error al completar venta: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+    }
+
+    public class SimpleInputDialog : Form
+    {
+        public string InputValue { get; private set; } = "";
+        private TextBox txtInput;
+
+        public SimpleInputDialog(string title, string prompt)
+        {
+            this.Text = title;
+            this.Size = new Size(350, 180);
+            this.StartPosition = FormStartPosition.CenterParent;
+            this.BackColor = Color.FromArgb(25, 25, 25);
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+
+            var lblPrompt = new Label()
+            {
+                Text = prompt,
+                ForeColor = Color.White,
+                Location = new Point(20, 20),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10F)
+            };
+
+            txtInput = new TextBox()
+            {
+                Location = new Point(20, 50),
+                Size = new Size(290, 25),
+                BackColor = Color.FromArgb(35, 35, 35),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 10F)
+            };
+
+            var btnOk = new Button()
+            {
+                Text = "Aceptar",
+                DialogResult = DialogResult.OK,
+                Location = new Point(130, 90),
+                Size = new Size(80, 30),
+                BackColor = Color.FromArgb(0, 120, 212),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnOk.Click += (s, e) => { InputValue = txtInput.Text; };
+
+            var btnCancel = new Button()
+            {
+                Text = "Cancelar",
+                DialogResult = DialogResult.Cancel,
+                Location = new Point(230, 90),
+                Size = new Size(80, 30),
+                BackColor = Color.FromArgb(100, 100, 100),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+
+            this.Controls.Add(lblPrompt);
+            this.Controls.Add(txtInput);
+            this.Controls.Add(btnOk);
+            this.Controls.Add(btnCancel);
+            this.AcceptButton = btnOk;
+            this.CancelButton = btnCancel;
         }
     }
 }

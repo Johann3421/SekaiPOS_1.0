@@ -59,7 +59,18 @@ namespace SekaiPOS_1._0
                         Phone TEXT NOT NULL DEFAULT '+1 234 567 8900',
                         TaxRate REAL NOT NULL DEFAULT 0.16,
                         Theme TEXT NOT NULL DEFAULT 'Dark',
-                        AccentColor TEXT NOT NULL DEFAULT '#00FF7F'
+                        AccentColor TEXT NOT NULL DEFAULT '#00FF7F',
+                        ReceiptHeader TEXT DEFAULT '',
+                        ReceiptFooter TEXT DEFAULT '¡Gracias por su compra!'
+                    );
+                    CREATE TABLE IF NOT EXISTS CashRegisterSessions (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        UserId INTEGER NOT NULL,
+                        StartTime TEXT NOT NULL,
+                        EndTime TEXT,
+                        StartBalance REAL NOT NULL,
+                        EndBalance REAL,
+                        Status TEXT NOT NULL DEFAULT 'Open'
                     );
                 ";
                 command.ExecuteNonQuery();
@@ -81,59 +92,23 @@ namespace SekaiPOS_1._0
                 if (settingsCount == 0)
                 {
                     var insertCommand = connection.CreateCommand();
-                    insertCommand.CommandText = @"INSERT INTO Settings (StoreName, Address, Phone, TaxRate, Theme, AccentColor) 
-                                                  VALUES ('SEKAI Tech Store', 'Av. Principal #123, Ciudad', '+1 234 567 8900', 0.16, 'Dark', '#00FF7F')";
+                    insertCommand.CommandText = @"INSERT INTO Settings (StoreName, Address, Phone, TaxRate, Theme, AccentColor, ReceiptHeader, ReceiptFooter) 
+                                                  VALUES ('SEKAI Tech Store', 'Av. Principal #123, Ciudad', '+1 234 567 8900', 0.16, 'Dark', '#00FF7F', 'Bienvenido a SEKAI POS', '¡Gracias por su compra!')";
                     insertCommand.ExecuteNonQuery();
                 }
-
-                // Insert sample products for electronics store if empty
-                checkCommand.CommandText = "SELECT COUNT(*) FROM Products";
-                long productCount = (long)checkCommand.ExecuteScalar()!;
-                if (productCount == 0)
-                {
-                    InsertSampleProducts(connection);
-                }
-            }
-        }
-
-        private void InsertSampleProducts(SqliteConnection connection)
-        {
-            var products = new[]
-            {
-                ("Laptop HP Pavilion 15", "Intel Core i5, 8GB RAM, 256GB SSD", 599.99m, 15, "Computadoras", "7501234567890"),
-                ("Mouse Logitech MX Master 3", "Mouse inalámbrico ergonómico", 99.99m, 30, "Accesorios", "7501234567891"),
-                ("Teclado Mecánico Corsair K95", "RGB, Cherry MX Red", 179.99m, 20, "Accesorios", "7501234567892"),
-                ("Monitor Samsung 27\" 4K", "Panel IPS, 60Hz", 349.99m, 12, "Monitores", "7501234567893"),
-                ("Auriculares Sony WH-1000XM4", "Cancelación de ruido activa", 299.99m, 25, "Audio", "7501234567894"),
-                ("SSD Kingston 1TB NVMe", "Lectura 3500MB/s", 89.99m, 40, "Almacenamiento", "7501234567895"),
-                ("Memoria RAM Corsair 16GB DDR4", "3200MHz", 79.99m, 35, "Componentes", "7501234567896"),
-                ("Webcam Logitech C920", "Full HD 1080p", 69.99m, 18, "Accesorios", "7501234567897"),
-                ("Router TP-Link Archer AX50", "WiFi 6, Dual Band", 129.99m, 22, "Redes", "7501234567898"),
-                ("Impresora HP LaserJet Pro", "Monocromática, WiFi", 199.99m, 10, "Impresoras", "7501234567899"),
-                ("Hub USB-C Anker 7-en-1", "HDMI, USB 3.0, SD", 49.99m, 50, "Accesorios", "7501234567900"),
-                ("Disco Duro Externo Seagate 2TB", "USB 3.0, Portátil", 69.99m, 28, "Almacenamiento", "7501234567901"),
-                ("Tarjeta Gráfica NVIDIA RTX 3060", "12GB GDDR6", 399.99m, 8, "Componentes", "7501234567902"),
-                ("Fuente de Poder EVGA 750W", "80+ Gold Modular", 119.99m, 15, "Componentes", "7501234567903"),
-                ("Case Corsair 4000D Airflow", "Mid Tower ATX", 89.99m, 12, "Componentes", "7501234567904"),
-                ("Tablet Samsung Galaxy Tab S7", "11\", 128GB", 549.99m, 10, "Tablets", "7501234567905"),
-                ("Smartwatch Apple Watch Series 7", "GPS, 45mm", 399.99m, 14, "Wearables", "7501234567906"),
-                ("Cámara Web Razer Kiyo", "Ring Light integrado", 99.99m, 16, "Accesorios", "7501234567907"),
-                ("Micrófono Blue Yeti", "USB, Multipropósito", 129.99m, 20, "Audio", "7501234567908"),
-                ("Cable HDMI 2.1 Belkin 2m", "8K, 48Gbps", 29.99m, 60, "Cables", "7501234567909")
-            };
-
-            foreach (var (name, desc, price, qty, category, barcode) in products)
-            {
-                var cmd = connection.CreateCommand();
-                cmd.CommandText = @"INSERT INTO Products (Name, Description, Price, Quantity, Category, Barcode) 
-                                   VALUES (@name, @desc, @price, @qty, @category, @barcode)";
-                cmd.Parameters.AddWithValue("@name", name);
-                cmd.Parameters.AddWithValue("@desc", desc);
-                cmd.Parameters.AddWithValue("@price", price);
-                cmd.Parameters.AddWithValue("@qty", qty);
-                cmd.Parameters.AddWithValue("@category", category);
-                cmd.Parameters.AddWithValue("@barcode", barcode);
-                cmd.ExecuteNonQuery();
+                
+                // Ensure new columns exist (migration for existing DB)
+                try {
+                    var alterCmd = connection.CreateCommand();
+                    alterCmd.CommandText = "ALTER TABLE Settings ADD COLUMN ReceiptHeader TEXT DEFAULT ''";
+                    alterCmd.ExecuteNonQuery();
+                } catch { } // Ignore if exists
+                
+                try {
+                    var alterCmd = connection.CreateCommand();
+                    alterCmd.CommandText = "ALTER TABLE Settings ADD COLUMN ReceiptFooter TEXT DEFAULT '¡Gracias por su compra!'";
+                    alterCmd.ExecuteNonQuery();
+                } catch { } // Ignore if exists
             }
         }
 
@@ -169,6 +144,23 @@ namespace SekaiPOS_1._0
             }
         }
 
+        public void AddProductFull(string name, string description, decimal price, int quantity, string category, string barcode)
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = "INSERT INTO Products (Name, Description, Price, Quantity, Category, Barcode) VALUES (@name, @desc, @price, @qty, @cat, @bar)";
+                command.Parameters.AddWithValue("@name", name);
+                command.Parameters.AddWithValue("@desc", description);
+                command.Parameters.AddWithValue("@price", price);
+                command.Parameters.AddWithValue("@qty", quantity);
+                command.Parameters.AddWithValue("@cat", category);
+                command.Parameters.AddWithValue("@bar", barcode);
+                command.ExecuteNonQuery();
+            }
+        }
+
         public void UpdateProduct(int id, string name, string description, decimal price, int quantity)
         {
             using (var connection = new SqliteConnection(ConnectionString))
@@ -193,6 +185,17 @@ namespace SekaiPOS_1._0
                 var command = connection.CreateCommand();
                 command.CommandText = "DELETE FROM Products WHERE Id = @id";
                 command.Parameters.AddWithValue("@id", id);
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public void DeleteAllProducts()
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = "DELETE FROM Products";
                 command.ExecuteNonQuery();
             }
         }
@@ -348,14 +351,14 @@ namespace SekaiPOS_1._0
             }
         }
 
-        // NEW: Settings methods
-        public (string StoreName, string Address, string Phone, decimal TaxRate) GetSettings()
+        // NEW: Settings methods updated
+        public (string StoreName, string Address, string Phone, decimal TaxRate, string ReceiptHeader, string ReceiptFooter) GetSettings()
         {
             using (var connection = new SqliteConnection(ConnectionString))
             {
                 connection.Open();
                 var cmd = connection.CreateCommand();
-                cmd.CommandText = "SELECT StoreName, Address, Phone, TaxRate FROM Settings LIMIT 1";
+                cmd.CommandText = "SELECT StoreName, Address, Phone, TaxRate, ReceiptHeader, ReceiptFooter FROM Settings LIMIT 1";
                 
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -365,15 +368,39 @@ namespace SekaiPOS_1._0
                             reader.GetString(0),
                             reader.GetString(1),
                             reader.GetString(2),
-                            reader.GetDecimal(3)
+                            reader.GetDecimal(3),
+                            reader.IsDBNull(4) ? "" : reader.GetString(4),
+                            reader.IsDBNull(5) ? "" : reader.GetString(5)
                         );
                     }
                 }
             }
-            return ("SEKAI Tech Store", "Av. Principal #123", "+1 234 567 8900", 0.16m);
+            return ("SEKAI Tech Store", "Av. Principal #123", "+1 234 567 8900", 0.16m, "", "");
         }
 
-        public void UpdateSettings(string storeName, string address, string phone, decimal taxRate)
+        public (string Theme, string AccentColor) GetThemeSettings()
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "SELECT Theme, AccentColor FROM Settings LIMIT 1";
+                
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return (
+                            reader.IsDBNull(0) ? "Dark" : reader.GetString(0),
+                            reader.IsDBNull(1) ? "#00FF7F" : reader.GetString(1)
+                        );
+                    }
+                }
+            }
+            return ("Dark", "#00FF7F");
+        }
+
+        public void UpdateSettings(string storeName, string address, string phone, decimal taxRate, string header, string footer)
         {
             using (var connection = new SqliteConnection(ConnectionString))
             {
@@ -383,14 +410,69 @@ namespace SekaiPOS_1._0
                                    StoreName = @name, 
                                    Address = @address, 
                                    Phone = @phone, 
-                                   TaxRate = @tax 
+                                   TaxRate = @tax,
+                                   ReceiptHeader = @header,
+                                   ReceiptFooter = @footer
                                    WHERE Id = 1";
                 cmd.Parameters.AddWithValue("@name", storeName);
                 cmd.Parameters.AddWithValue("@address", address);
                 cmd.Parameters.AddWithValue("@phone", phone);
                 cmd.Parameters.AddWithValue("@tax", taxRate);
+                cmd.Parameters.AddWithValue("@header", header);
+                cmd.Parameters.AddWithValue("@footer", footer);
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        // NEW: Cash Register Methods
+        public void OpenRegister(int userId, decimal startBalance)
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = @"INSERT INTO CashRegisterSessions (UserId, StartTime, StartBalance, Status) 
+                                   VALUES (@userId, @startTime, @balance, 'Open')";
+                cmd.Parameters.AddWithValue("@userId", userId);
+                cmd.Parameters.AddWithValue("@startTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                cmd.Parameters.AddWithValue("@balance", startBalance);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void CloseRegister(int sessionId, decimal endBalance)
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = @"UPDATE CashRegisterSessions SET 
+                                   EndTime = @endTime, 
+                                   EndBalance = @balance, 
+                                   Status = 'Closed' 
+                                   WHERE Id = @id";
+                cmd.Parameters.AddWithValue("@endTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                cmd.Parameters.AddWithValue("@balance", endBalance);
+                cmd.Parameters.AddWithValue("@id", sessionId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public int? GetOpenRegisterSessionId()
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "SELECT Id FROM CashRegisterSessions WHERE Status = 'Open' ORDER BY Id DESC LIMIT 1";
+                var result = cmd.ExecuteScalar();
+                return result == null ? null : Convert.ToInt32(result);
+            }
+        }
+        
+        public bool IsRegisterOpen()
+        {
+            return GetOpenRegisterSessionId().HasValue;
         }
 
         public DataTable GetAllUsers()
@@ -445,6 +527,19 @@ namespace SekaiPOS_1._0
                 cmd.CommandText = "UPDATE Users SET Password = @pass WHERE Username = @user";
                 cmd.Parameters.AddWithValue("@pass", newPassword);
                 cmd.Parameters.AddWithValue("@user", username);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void UpdateThemeSettings(string theme, string accentColor)
+        {
+            using (var connection = new SqliteConnection(ConnectionString))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "UPDATE Settings SET Theme = @theme, AccentColor = @color WHERE Id = 1";
+                cmd.Parameters.AddWithValue("@theme", theme);
+                cmd.Parameters.AddWithValue("@color", accentColor);
                 cmd.ExecuteNonQuery();
             }
         }

@@ -414,7 +414,7 @@ namespace SekaiPOS_1._0
         {
             try
             {
-                var form = new SalesFormFixed(db);
+                var form = new SalesFormFinal(db);
                 OpenChildForm(form, IconChar.CashRegister, "Ventas");
             }
             catch (Exception ex)

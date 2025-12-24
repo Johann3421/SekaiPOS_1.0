@@ -9,7 +9,7 @@ namespace SekaiPOS_1._0
     {
         private DatabaseHelper db;
         private TabControl tabControl;
-        private TextBox txtStoreName, txtAddress, txtPhone;
+        private TextBox txtStoreName, txtAddress, txtPhone, txtReceiptHeader, txtReceiptFooter;
         private NumericUpDown numTax;
         private DataGridView dgvUsers;
 
@@ -106,6 +106,8 @@ namespace SekaiPOS_1._0
                 if (txtAddress != null) txtAddress.Text = settings.Address;
                 if (txtPhone != null) txtPhone.Text = settings.Phone;
                 if (numTax != null) numTax.Value = settings.TaxRate * 100;
+                if (txtReceiptHeader != null) txtReceiptHeader.Text = settings.ReceiptHeader;
+                if (txtReceiptFooter != null) txtReceiptFooter.Text = settings.ReceiptFooter;
             }
             catch (Exception ex)
             {
@@ -120,7 +122,8 @@ namespace SekaiPOS_1._0
                 Size = new Size(1050, 450),
                 Location = new Point(20, 20),
                 BackColor = Color.FromArgb(25, 25, 25),
-                Padding = new Padding(20)
+                Padding = new Padding(20),
+                AutoScroll = true
             };
 
             var lblStoreName = new Label()
@@ -147,13 +150,13 @@ namespace SekaiPOS_1._0
                 Text = "Dirección:",
                 Font = new Font("Segoe UI", 11F, FontStyle.Bold),
                 ForeColor = Color.White,
-                Location = new Point(20, 100),
+                Location = new Point(20, 90),
                 AutoSize = true
             };
 
             txtAddress = new TextBox()
             {
-                Location = new Point(20, 130),
+                Location = new Point(20, 120),
                 Size = new Size(400, 30),
                 Font = new Font("Segoe UI", 10F),
                 BackColor = Color.FromArgb(35, 35, 35),
@@ -166,13 +169,13 @@ namespace SekaiPOS_1._0
                 Text = "Teléfono:",
                 Font = new Font("Segoe UI", 11F, FontStyle.Bold),
                 ForeColor = Color.White,
-                Location = new Point(20, 180),
+                Location = new Point(20, 160),
                 AutoSize = true
             };
 
             txtPhone = new TextBox()
             {
-                Location = new Point(20, 210),
+                Location = new Point(20, 190),
                 Size = new Size(400, 30),
                 Font = new Font("Segoe UI", 10F),
                 BackColor = Color.FromArgb(35, 35, 35),
@@ -185,13 +188,13 @@ namespace SekaiPOS_1._0
                 Text = "IVA (%):",
                 Font = new Font("Segoe UI", 11F, FontStyle.Bold),
                 ForeColor = Color.White,
-                Location = new Point(20, 260),
+                Location = new Point(20, 230),
                 AutoSize = true
             };
 
             numTax = new NumericUpDown()
             {
-                Location = new Point(20, 290),
+                Location = new Point(20, 260),
                 Size = new Size(150, 30),
                 Font = new Font("Segoe UI", 10F),
                 BackColor = Color.FromArgb(35, 35, 35),
@@ -203,6 +206,46 @@ namespace SekaiPOS_1._0
                 Value = 16
             };
 
+            var lblHeader = new Label()
+            {
+                Text = "Encabezado de Boleta:",
+                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(500, 20),
+                AutoSize = true
+            };
+
+            txtReceiptHeader = new TextBox()
+            {
+                Location = new Point(500, 50),
+                Size = new Size(400, 60),
+                Font = new Font("Segoe UI", 10F),
+                BackColor = Color.FromArgb(35, 35, 35),
+                ForeColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
+                Multiline = true
+            };
+
+            var lblFooter = new Label()
+            {
+                Text = "Pie de Boleta:",
+                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(500, 120),
+                AutoSize = true
+            };
+
+            txtReceiptFooter = new TextBox()
+            {
+                Location = new Point(500, 150),
+                Size = new Size(400, 60),
+                Font = new Font("Segoe UI", 10F),
+                BackColor = Color.FromArgb(35, 35, 35),
+                ForeColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
+                Multiline = true
+            };
+
             var btnSaveGeneral = new IconButton()
             {
                 IconChar = IconChar.Save,
@@ -210,7 +253,7 @@ namespace SekaiPOS_1._0
                 IconSize = 20,
                 Text = "Guardar Cambios",
                 Size = new Size(200, 45),
-                Location = new Point(20, 360),
+                Location = new Point(20, 320),
                 BackColor = Color.FromArgb(0, 120, 212),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -229,6 +272,10 @@ namespace SekaiPOS_1._0
             panel.Controls.Add(txtPhone);
             panel.Controls.Add(lblTax);
             panel.Controls.Add(numTax);
+            panel.Controls.Add(lblHeader);
+            panel.Controls.Add(txtReceiptHeader);
+            panel.Controls.Add(lblFooter);
+            panel.Controls.Add(txtReceiptFooter);
             panel.Controls.Add(btnSaveGeneral);
 
             tab.Controls.Add(panel);
@@ -248,7 +295,9 @@ namespace SekaiPOS_1._0
                     txtStoreName.Text,
                     txtAddress.Text,
                     txtPhone.Text,
-                    numTax.Value / 100
+                    numTax.Value / 100,
+                    txtReceiptHeader.Text,
+                    txtReceiptFooter.Text
                 );
 
                 MessageBox.Show("Configuración guardada exitosamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
