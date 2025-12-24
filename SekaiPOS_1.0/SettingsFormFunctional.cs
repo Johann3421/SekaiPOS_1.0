@@ -536,21 +536,38 @@ namespace SekaiPOS_1._0
                 TextAlign = ContentAlignment.MiddleLeft
             };
 
-            var lblTheme = new Label()
+            // Switch tema oscuro/claro
+            var btnToggleTheme = new IconButton()
             {
-                Text = "Tema: Oscuro (Tech Style)",
-                Font = new Font("Segoe UI", 11F),
+                IconChar = ThemeManager.IsDarkTheme ? IconChar.Sun : IconChar.Moon,
+                IconColor = Color.White,
+                IconSize = 20,
+                Text = ThemeManager.IsDarkTheme ? "Cambiar a Tema Claro" : "Cambiar a Tema Oscuro",
+                Size = new Size(220, 45),
+                Location = new Point(20, 60),
+                BackColor = ThemeManager.IsDarkTheme ? Color.FromArgb(255, 193, 7) : Color.FromArgb(63, 81, 181),
                 ForeColor = Color.White,
-                Location = new Point(20, 70),
-                AutoSize = true
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                TextImageRelation = TextImageRelation.ImageBeforeText,
+                Cursor = Cursors.Hand
+            };
+            btnToggleTheme.FlatAppearance.BorderSize = 0;
+            btnToggleTheme.Click += (s, e) =>
+            {
+                ThemeManager.ToggleTheme(db);
+                btnToggleTheme.IconChar = ThemeManager.IsDarkTheme ? IconChar.Sun : IconChar.Moon;
+                btnToggleTheme.Text = ThemeManager.IsDarkTheme ? "Cambiar a Tema Claro" : "Cambiar a Tema Oscuro";
+                btnToggleTheme.BackColor = ThemeManager.IsDarkTheme ? Color.FromArgb(255, 193, 7) : Color.FromArgb(63, 81, 181);
+                lblInfo.ForeColor = ThemeManager.CurrentAccentColor;
             };
 
             var lblAccent = new Label()
             {
-                Text = $"Color de Acento Actual: {ThemeManager.GetColorName(ThemeManager.CurrentAccentColor)}",
+                Text = $"Color de Acento: {ThemeManager.GetColorName(ThemeManager.CurrentAccentColor)}",
                 Font = new Font("Segoe UI", 11F),
                 ForeColor = Color.White,
-                Location = new Point(20, 100),
+                Location = new Point(20, 120),
                 AutoSize = true
             };
 
@@ -559,24 +576,24 @@ namespace SekaiPOS_1._0
                 Text = "Click en un color para aplicarlo:",
                 Font = new Font("Segoe UI", 10F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(180, 180, 180),
-                Location = new Point(20, 140),
+                Location = new Point(20, 150),
                 AutoSize = true
             };
 
-            var panel1 = CreateClickableColorPreview("Verde Neón", ThemeManager.AccentColors.GreenNeon, 20, 180, lblAccent);
-            var panel2 = CreateClickableColorPreview("Azul Eléctrico", ThemeManager.AccentColors.ElectricBlue, 180, 180, lblAccent);
-            var panel3 = CreateClickableColorPreview("Púrpura", ThemeManager.AccentColors.Purple, 340, 180, lblAccent);
-            var panel4 = CreateClickableColorPreview("Naranja", ThemeManager.AccentColors.Orange, 20, 300, lblAccent);
-            var panel5 = CreateClickableColorPreview("Rojo", ThemeManager.AccentColors.Red, 180, 300, lblAccent);
-            var panel6 = CreateClickableColorPreview("Cyan", ThemeManager.AccentColors.Cyan, 340, 300, lblAccent);
+            var panel1 = CreateClickableColorPreview("Verde Neón", ThemeManager.AccentColors.GreenNeon, 20, 190, lblAccent);
+            var panel2 = CreateClickableColorPreview("Azul Eléctrico", ThemeManager.AccentColors.ElectricBlue, 180, 190, lblAccent);
+            var panel3 = CreateClickableColorPreview("Púrpura", ThemeManager.AccentColors.Purple, 340, 190, lblAccent);
+            var panel4 = CreateClickableColorPreview("Naranja", ThemeManager.AccentColors.Orange, 20, 310, lblAccent);
+            var panel5 = CreateClickableColorPreview("Rojo", ThemeManager.AccentColors.Red, 180, 310, lblAccent);
+            var panel6 = CreateClickableColorPreview("Cyan", ThemeManager.AccentColors.Cyan, 340, 310, lblAccent);
 
             var lblNote = new Label()
             {
-                Text = "? Los cambios se aplican inmediatamente\n?? Se guarda automáticamente",
+                Text = "✨ Cambios instantáneos\n💾 Guardado automático",
                 Font = new Font("Segoe UI", 9F),
                 ForeColor = Color.FromArgb(150, 150, 150),
-                Location = new Point(520, 180),
-                Size = new Size(400, 80),
+                Location = new Point(520, 190),
+                Size = new Size(400, 60),
                 BackColor = Color.FromArgb(30, 30, 30),
                 Padding = new Padding(10)
             };
@@ -588,7 +605,7 @@ namespace SekaiPOS_1._0
                 IconSize = 20,
                 Text = "Restaurar Default",
                 Size = new Size(180, 45),
-                Location = new Point(520, 280),
+                Location = new Point(520, 270),
                 BackColor = Color.FromArgb(100, 100, 100),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -600,13 +617,13 @@ namespace SekaiPOS_1._0
             btnReset.Click += (s, e) =>
             {
                 ThemeManager.SaveThemeToDatabase(db, ThemeManager.AccentColors.GreenNeon);
-                lblAccent.Text = $"Color de Acento Actual: {ThemeManager.GetColorName(ThemeManager.CurrentAccentColor)}";
+                lblAccent.Text = $"Color de Acento: {ThemeManager.GetColorName(ThemeManager.CurrentAccentColor)}";
                 lblInfo.ForeColor = ThemeManager.CurrentAccentColor;
-                MessageBox.Show("Tema restaurado a Verde Neón", "Tema Restaurado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Tema restaurado", "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
 
             panel.Controls.Add(lblInfo);
-            panel.Controls.Add(lblTheme);
+            panel.Controls.Add(btnToggleTheme);
             panel.Controls.Add(lblAccent);
             panel.Controls.Add(lblInstruction);
             panel.Controls.Add(panel1);

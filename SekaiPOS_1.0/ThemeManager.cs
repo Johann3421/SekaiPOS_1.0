@@ -1,21 +1,22 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
 using FontAwesome.Sharp;
 
 namespace SekaiPOS_1._0
 {
     public static class ThemeManager
     {
-        // Colores predefinidos
         public static class AccentColors
         {
-            public static readonly Color GreenNeon = Color.FromArgb(0, 255, 127);      // Verde Neón (Default)
-            public static readonly Color ElectricBlue = Color.FromArgb(0, 191, 255);   // Azul Eléctrico
-            public static readonly Color Purple = Color.FromArgb(138, 43, 226);        // Púrpura
-            public static readonly Color Orange = Color.FromArgb(255, 140, 0);         // Naranja
-            public static readonly Color Red = Color.FromArgb(220, 20, 60);            // Rojo
-            public static readonly Color Cyan = Color.FromArgb(0, 255, 255);           // Cyan
+            public static readonly Color GreenNeon = Color.FromArgb(0, 255, 127);
+            public static readonly Color ElectricBlue = Color.FromArgb(0, 191, 255);
+            public static readonly Color Purple = Color.FromArgb(138, 43, 226);
+            public static readonly Color Orange = Color.FromArgb(255, 140, 0);
+            public static readonly Color Red = Color.FromArgb(220, 20, 60);
+            public static readonly Color Cyan = Color.FromArgb(0, 255, 255);
         }
 
-        // Colores del tema oscuro
         public static class DarkTheme
         {
             public static readonly Color Background = Color.FromArgb(15, 15, 15);
@@ -26,13 +27,35 @@ namespace SekaiPOS_1._0
             public static readonly Color Border = Color.FromArgb(50, 50, 50);
         }
 
+        public static class LightTheme
+        {
+            public static readonly Color Background = Color.FromArgb(245, 245, 245);
+            public static readonly Color Surface = Color.White;
+            public static readonly Color SurfaceVariant = Color.FromArgb(250, 250, 250);
+            public static readonly Color TextPrimary = Color.FromArgb(33, 33, 33);
+            public static readonly Color TextSecondary = Color.FromArgb(100, 100, 100);
+            public static readonly Color Border = Color.FromArgb(224, 224, 224);
+        }
+
         private static Color _currentAccentColor = AccentColors.GreenNeon;
+        private static bool _isDarkTheme = true;
+
         public static Color CurrentAccentColor
         {
             get => _currentAccentColor;
             set
             {
                 _currentAccentColor = value;
+                OnThemeChanged?.Invoke(null, EventArgs.Empty);
+            }
+        }
+
+        public static bool IsDarkTheme
+        {
+            get => _isDarkTheme;
+            set
+            {
+                _isDarkTheme = value;
                 OnThemeChanged?.Invoke(null, EventArgs.Empty);
             }
         }
@@ -45,10 +68,12 @@ namespace SekaiPOS_1._0
             {
                 var (theme, accentColorHex) = db.GetThemeSettings();
                 _currentAccentColor = ColorFromHex(accentColorHex) ?? AccentColors.GreenNeon;
+                _isDarkTheme = theme.ToLower() == "dark";
             }
             catch
             {
                 _currentAccentColor = AccentColors.GreenNeon;
+                _isDarkTheme = true;
             }
         }
 
@@ -57,7 +82,8 @@ namespace SekaiPOS_1._0
             try
             {
                 string hex = ColorToHex(accentColor);
-                db.UpdateThemeSettings("Dark", hex);
+                string themeName = _isDarkTheme ? "Dark" : "Light";
+                db.UpdateThemeSettings(themeName, hex);
                 _currentAccentColor = accentColor;
                 OnThemeChanged?.Invoke(null, EventArgs.Empty);
             }
@@ -67,34 +93,46 @@ namespace SekaiPOS_1._0
             }
         }
 
+        public static void ToggleTheme(DatabaseHelper db)
+        {
+            _isDarkTheme = !_isDarkTheme;
+            SaveThemeToDatabase(db, _currentAccentColor);
+        }
+
         public static void ApplyTheme(Form form)
         {
             if (form == null) return;
 
-            form.BackColor = DarkTheme.Background;
+            form.BackColor = _isDarkTheme ? DarkTheme.Background : LightTheme.Background;
             ApplyThemeToControls(form.Controls);
         }
 
         private static void ApplyThemeToControls(Control.ControlCollection controls)
         {
+            var textColor = _isDarkTheme ? DarkTheme.TextPrimary : LightTheme.TextPrimary;
+            var surfaceColor = _isDarkTheme ? DarkTheme.Surface : LightTheme.Surface;
+            var surfaceVariant = _isDarkTheme ? DarkTheme.SurfaceVariant : LightTheme.SurfaceVariant;
+
             foreach (Control control in controls)
             {
-                // Aplicar tema según tipo de control
                 if (control is Panel panel)
                 {
-                    ApplyThemeToPanel(panel);
+                    if (panel.BackColor == DarkTheme.Background || panel.BackColor == LightTheme.Background)
+                        panel.BackColor = _isDarkTheme ? DarkTheme.Background : LightTheme.Background;
+                    else if (panel.BackColor == DarkTheme.Surface || panel.BackColor == LightTheme.Surface)
+                        panel.BackColor = surfaceColor;
+                    else if (panel.BackColor == DarkTheme.SurfaceVariant || panel.BackColor == LightTheme.SurfaceVariant)
+                        panel.BackColor = surfaceVariant;
                 }
                 else if (control is IconButton button)
                 {
                     ApplyThemeToIconButton(button);
                 }
-                else if (control is Button btn)
-                {
-                    ApplyThemeToButton(btn);
-                }
                 else if (control is Label label)
                 {
-                    ApplyThemeToLabel(label);
+                    if (label.ForeColor == DarkTheme.TextPrimary || label.ForeColor == LightTheme.TextPrimary ||
+                        label.ForeColor == Color.White || label.ForeColor == Color.Black)
+                        label.ForeColor = textColor;
                 }
                 else if (control is DataGridView dgv)
                 {
@@ -102,18 +140,10 @@ namespace SekaiPOS_1._0
                 }
                 else if (control is TextBox textBox)
                 {
-                    ApplyThemeToTextBox(textBox);
-                }
-                else if (control is IconPictureBox iconPic)
-                {
-                    ApplyThemeToIconPictureBox(iconPic);
-                }
-                else if (control is TabControl tabControl)
-                {
-                    ApplyThemeToTabControl(tabControl);
+                    textBox.BackColor = surfaceVariant;
+                    textBox.ForeColor = textColor;
                 }
 
-                // Recursivamente aplicar a controles hijos
                 if (control.HasChildren)
                 {
                     ApplyThemeToControls(control.Controls);
@@ -121,99 +151,42 @@ namespace SekaiPOS_1._0
             }
         }
 
-        private static void ApplyThemeToPanel(Panel panel)
-        {
-            // Mantener color de fondo específico si no es el default
-            if (panel.BackColor == Color.Transparent ||
-                panel.BackColor == Color.FromArgb(20, 20, 20) ||
-                panel.BackColor == Color.FromArgb(25, 25, 25) ||
-                panel.BackColor == Color.FromArgb(30, 30, 30))
-            {
-                // No cambiar, mantener el color de superficie
-            }
-        }
-
         private static void ApplyThemeToIconButton(IconButton button)
         {
-            // Botones con color de acento
-            if (button.BackColor == Color.FromArgb(0, 255, 127) || // Verde anterior
-                button.BackColor == Color.FromArgb(0, 191, 255) || // Azul anterior
-                button.BackColor == Color.FromArgb(138, 43, 226) || // Púrpura anterior
-                button.BackColor == Color.FromArgb(255, 140, 0) || // Naranja anterior
-                button.BackColor == Color.FromArgb(0, 200, 83))    // Verde botón agregar
+            if (button.BackColor == Color.FromArgb(0, 255, 127) || 
+                button.BackColor == Color.FromArgb(0, 191, 255) || 
+                button.BackColor == Color.FromArgb(138, 43, 226) || 
+                button.BackColor == Color.FromArgb(255, 140, 0) || 
+                button.BackColor == Color.FromArgb(0, 200, 83) ||
+                button.BackColor == Color.FromArgb(0, 120, 212))
             {
                 button.BackColor = CurrentAccentColor;
                 button.FlatAppearance.MouseOverBackColor = LightenColor(CurrentAccentColor, 20);
             }
-            // Botones primarios
-            else if (button.BackColor == Color.FromArgb(0, 120, 212))
-            {
-                button.BackColor = CurrentAccentColor;
-                button.FlatAppearance.MouseOverBackColor = LightenColor(CurrentAccentColor, 20);
-            }
-
+            
             button.IconColor = Color.White;
             button.ForeColor = Color.White;
         }
 
-        private static void ApplyThemeToButton(Button button)
-        {
-            if (button.BackColor == Color.FromArgb(0, 120, 212) ||
-                button.BackColor == Color.FromArgb(0, 255, 127))
-            {
-                button.BackColor = CurrentAccentColor;
-            }
-        }
-
-        private static void ApplyThemeToLabel(Label label)
-        {
-            // Labels con color de acento
-            if (label.ForeColor == Color.FromArgb(0, 255, 127) ||
-                label.ForeColor == Color.FromArgb(0, 120, 212))
-            {
-                label.ForeColor = CurrentAccentColor;
-            }
-        }
-
         private static void ApplyThemeToDataGridView(DataGridView dgv)
         {
-            if (dgv.ColumnHeadersDefaultCellStyle.BackColor == Color.FromArgb(0, 120, 212) ||
-                dgv.ColumnHeadersDefaultCellStyle.BackColor == Color.FromArgb(0, 255, 127))
-            {
-                dgv.ColumnHeadersDefaultCellStyle.BackColor = CurrentAccentColor;
-                dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = CurrentAccentColor;
-            }
+            var surfaceColor = _isDarkTheme ? DarkTheme.Surface : LightTheme.Surface;
+            var textColor = _isDarkTheme ? DarkTheme.TextPrimary : LightTheme.TextPrimary;
 
-            if (dgv.DefaultCellStyle.SelectionBackColor == Color.FromArgb(0, 150, 255) ||
-                dgv.DefaultCellStyle.SelectionBackColor == Color.FromArgb(0, 255, 127))
-            {
-                dgv.DefaultCellStyle.SelectionBackColor = LightenColor(CurrentAccentColor, 30);
-            }
+            dgv.BackgroundColor = surfaceColor;
+            dgv.ForeColor = textColor;
+            dgv.GridColor = _isDarkTheme ? DarkTheme.Border : LightTheme.Border;
+
+            dgv.ColumnHeadersDefaultCellStyle.BackColor = CurrentAccentColor;
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = CurrentAccentColor;
+
+            dgv.DefaultCellStyle.BackColor = surfaceColor;
+            dgv.DefaultCellStyle.ForeColor = textColor;
+            dgv.DefaultCellStyle.SelectionBackColor = LightenColor(CurrentAccentColor, 30);
+            dgv.DefaultCellStyle.SelectionForeColor = Color.White;
         }
 
-        private static void ApplyThemeToTextBox(TextBox textBox)
-        {
-            textBox.BackColor = DarkTheme.SurfaceVariant;
-            textBox.ForeColor = DarkTheme.TextPrimary;
-        }
-
-        private static void ApplyThemeToIconPictureBox(IconPictureBox iconPic)
-        {
-            // Iconos con color de acento
-            if (iconPic.IconColor == Color.FromArgb(0, 255, 127) ||
-                iconPic.IconColor == Color.FromArgb(0, 120, 212))
-            {
-                iconPic.IconColor = CurrentAccentColor;
-            }
-        }
-
-        private static void ApplyThemeToTabControl(TabControl tabControl)
-        {
-            // Los tabs se manejan con DrawItem event
-            tabControl.Invalidate();
-        }
-
-        // Utilidades de color
         public static Color LightenColor(Color color, int amount)
         {
             int r = Math.Min(255, color.R + amount);
@@ -241,7 +214,7 @@ namespace SekaiPOS_1._0
             {
                 if (string.IsNullOrWhiteSpace(hex)) return null;
                 hex = hex.TrimStart('#');
-
+                
                 if (hex.Length == 6)
                 {
                     int r = Convert.ToInt32(hex.Substring(0, 2), 16);
@@ -251,7 +224,7 @@ namespace SekaiPOS_1._0
                 }
             }
             catch { }
-
+            
             return null;
         }
 
