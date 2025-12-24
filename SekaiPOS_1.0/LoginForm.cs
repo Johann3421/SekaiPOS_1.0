@@ -1,8 +1,5 @@
-using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Windows.Forms;
 using FontAwesome.Sharp;
+using System.Drawing.Drawing2D;
 
 namespace SekaiPOS_1._0
 {
@@ -272,7 +269,7 @@ namespace SekaiPOS_1._0
             {
                 panelUsername.Invalidate();
             };
-            
+
             txtPassword.Enter += (s, e) =>
             {
                 panelPassword.Invalidate();
@@ -348,7 +345,7 @@ namespace SekaiPOS_1._0
                     lastLocation = me.Location;
                 }
             };
-            
+
             this.MouseMove += (s, e) =>
             {
                 if (e is MouseEventArgs me && mouseDown)
@@ -358,7 +355,7 @@ namespace SekaiPOS_1._0
                         (this.Location.Y - lastLocation.Y) + me.Y);
                 }
             };
-            
+
             this.MouseUp += (s, e) => mouseDown = false;
         }
     }

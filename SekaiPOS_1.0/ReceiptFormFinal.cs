@@ -1,8 +1,5 @@
-using System;
-using System.Drawing;
-using System.Drawing.Printing;
-using System.Windows.Forms;
 using FontAwesome.Sharp;
+using System.Drawing.Printing;
 
 namespace SekaiPOS_1._0
 {
@@ -100,12 +97,12 @@ namespace SekaiPOS_1._0
 
             var receipt = new System.Text.StringBuilder();
             receipt.AppendLine("========================================");
-            
+
             // Center Store Name
             string storeName = settings.StoreName.Length > 40 ? settings.StoreName.Substring(0, 40) : settings.StoreName;
             int padding = Math.Max(0, (40 - storeName.Length) / 2);
             receipt.AppendLine(storeName.PadLeft(storeName.Length + padding));
-            
+
             // Address and Phone
             if (!string.IsNullOrEmpty(settings.Address))
             {
@@ -119,7 +116,7 @@ namespace SekaiPOS_1._0
             }
 
             receipt.AppendLine("========================================");
-            
+
             if (!string.IsNullOrEmpty(settings.ReceiptHeader))
             {
                 receipt.AppendLine(settings.ReceiptHeader);
@@ -155,7 +152,7 @@ namespace SekaiPOS_1._0
             receipt.AppendLine($"Método de Pago: {paymentMethod}");
             receipt.AppendLine();
             receipt.AppendLine("========================================");
-            
+
             if (!string.IsNullOrEmpty(settings.ReceiptFooter))
             {
                 receipt.AppendLine(settings.ReceiptFooter);
@@ -164,7 +161,7 @@ namespace SekaiPOS_1._0
             {
                 receipt.AppendLine("      ¡GRACIAS POR SU COMPRA!         ");
             }
-            
+
             receipt.AppendLine("========================================");
 
             txtReceipt.Text = receipt.ToString();
@@ -196,7 +193,7 @@ namespace SekaiPOS_1._0
                 Font font = new Font("Courier New", 9);
                 float yPos = 50;
                 float leftMargin = e.MarginBounds.Left;
-                
+
                 foreach (string line in txtReceipt.Lines)
                 {
                     e.Graphics.DrawString(line, font, Brushes.Black, leftMargin, yPos);

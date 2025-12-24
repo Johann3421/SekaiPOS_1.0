@@ -1,8 +1,5 @@
-using System;
-using System.Data;
-using System.Drawing;
-using System.Windows.Forms;
 using FontAwesome.Sharp;
+using System.Data;
 
 namespace SekaiPOS_1._0
 {
@@ -23,10 +20,10 @@ namespace SekaiPOS_1._0
         {
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
-                
+
             db = database;
             InitializeComponent();
-            
+
             // Load reports after form is shown
             this.Shown += (s, e) => LoadReports();
         }
@@ -245,11 +242,11 @@ namespace SekaiPOS_1._0
                 if (db == null) return;
 
                 var dt = GetSalesInRange();
-                
+
                 // Clear existing data
                 dgvSales.DataSource = null;
                 dgvSales.Columns.Clear();
-                
+
                 // Set new data
                 dgvSales.DataSource = dt;
 
@@ -260,26 +257,26 @@ namespace SekaiPOS_1._0
                         dgvSales.Columns["Id"].HeaderText = "ID Venta";
                         dgvSales.Columns["Id"].Width = 80;
                     }
-                    
+
                     if (dgvSales.Columns.Contains("SaleDate"))
                     {
                         dgvSales.Columns["SaleDate"].HeaderText = "Fecha";
                         dgvSales.Columns["SaleDate"].Width = 150;
                     }
-                    
+
                     if (dgvSales.Columns.Contains("Total"))
                     {
                         dgvSales.Columns["Total"].HeaderText = "Total";
                         dgvSales.Columns["Total"].DefaultCellStyle.Format = "C2";
                         dgvSales.Columns["Total"].Width = 120;
                     }
-                    
+
                     if (dgvSales.Columns.Contains("Username"))
                     {
                         dgvSales.Columns["Username"].HeaderText = "Usuario";
                         dgvSales.Columns["Username"].Width = 120;
                     }
-                    
+
                     if (dgvSales.Columns.Contains("PaymentMethod"))
                     {
                         dgvSales.Columns["PaymentMethod"].HeaderText = "Método de Pago";
@@ -301,7 +298,7 @@ namespace SekaiPOS_1._0
                 lblTotalRevenue.Text = totalRevenue.ToString("C2");
                 lblAverageTicket.Text = avgTicket.ToString("C2");
                 lblBestSeller.Text = GetBestSeller();
-                
+
                 dgvSales.Refresh();
             }
             catch (Exception ex)

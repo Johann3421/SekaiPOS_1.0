@@ -1,7 +1,7 @@
+ï»¿using FontAwesome.Sharp;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using FontAwesome.Sharp;
 
 namespace SekaiPOS_1._0
 {
@@ -17,7 +17,7 @@ namespace SekaiPOS_1._0
         {
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
-                
+
             db = database;
             InitializeComponent();
             LoadSettings();
@@ -30,7 +30,7 @@ namespace SekaiPOS_1._0
 
             var lblTitle = new Label()
             {
-                Text = "Configuración del Sistema",
+                Text = "Configuraciï¿½n del Sistema",
                 Font = new Font("Segoe UI", 16F, FontStyle.Bold),
                 ForeColor = Color.White,
                 Location = new Point(20, 20),
@@ -77,8 +77,8 @@ namespace SekaiPOS_1._0
             var tabPage = tabControl.TabPages[e.Index];
             var tabBounds = tabControl.GetTabRect(e.Index);
 
-            var backColor = e.State == DrawItemState.Selected 
-                ? Color.FromArgb(0, 120, 212) 
+            var backColor = e.State == DrawItemState.Selected
+                ? Color.FromArgb(0, 120, 212)
                 : Color.FromArgb(30, 30, 30);
 
             using (SolidBrush brush = new SolidBrush(backColor))
@@ -111,7 +111,7 @@ namespace SekaiPOS_1._0
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar configuración: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error al cargar configuraciï¿½n: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -147,7 +147,7 @@ namespace SekaiPOS_1._0
 
             var lblAddress = new Label()
             {
-                Text = "Dirección:",
+                Text = "Direcciï¿½n:",
                 Font = new Font("Segoe UI", 11F, FontStyle.Bold),
                 ForeColor = Color.White,
                 Location = new Point(20, 90),
@@ -166,7 +166,7 @@ namespace SekaiPOS_1._0
 
             var lblPhone = new Label()
             {
-                Text = "Teléfono:",
+                Text = "Telï¿½fono:",
                 Font = new Font("Segoe UI", 11F, FontStyle.Bold),
                 ForeColor = Color.White,
                 Location = new Point(20, 160),
@@ -287,7 +287,7 @@ namespace SekaiPOS_1._0
             {
                 if (string.IsNullOrWhiteSpace(txtStoreName.Text))
                 {
-                    MessageBox.Show("El nombre de la tienda es requerido", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("El nombre de la tienda es requerido", "Validaciï¿½n", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -300,7 +300,7 @@ namespace SekaiPOS_1._0
                     txtReceiptFooter.Text
                 );
 
-                MessageBox.Show("Configuración guardada exitosamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Configuraciï¿½n guardada exitosamente", "ï¿½xito", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -320,7 +320,7 @@ namespace SekaiPOS_1._0
 
             var lblInfo = new Label()
             {
-                Text = "Gestión de Usuarios del Sistema",
+                Text = "Gestiï¿½n de Usuarios del Sistema",
                 Font = new Font("Segoe UI", 12F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(0, 255, 127),
                 Location = new Point(20, 20),
@@ -368,7 +368,7 @@ namespace SekaiPOS_1._0
                 IconChar = IconChar.Key,
                 IconColor = Color.White,
                 IconSize = 20,
-                Text = "Cambiar Contraseña",
+                Text = "Cambiar Contraseï¿½a",
                 Size = new Size(200, 45),
                 Location = new Point(420, 60),
                 BackColor = Color.FromArgb(255, 159, 10),
@@ -454,7 +454,7 @@ namespace SekaiPOS_1._0
                     {
                         db.AddUser(dialog.Username, dialog.Password, dialog.IsAdmin);
                         LoadUsers();
-                        MessageBox.Show("Usuario agregado exitosamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show("Usuario agregado exitosamente", "ï¿½xito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     catch (Exception ex)
                     {
@@ -481,14 +481,14 @@ namespace SekaiPOS_1._0
                 return;
             }
 
-            if (MessageBox.Show($"¿Estás seguro de eliminar al usuario '{username}'?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (MessageBox.Show($"ï¿½Estï¿½s seguro de eliminar al usuario '{username}'?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 try
                 {
                     int userId = Convert.ToInt32(row.Cells["Id"].Value);
                     db.DeleteUser(userId);
                     LoadUsers();
-                    MessageBox.Show("Usuario eliminado exitosamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Usuario eliminado exitosamente", "ï¿½xito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
                 {
@@ -506,7 +506,7 @@ namespace SekaiPOS_1._0
                     try
                     {
                         db.ChangePassword(dialog.Username, dialog.NewPassword);
-                        MessageBox.Show("Contraseña cambiada exitosamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show("Contraseï¿½a cambiada exitosamente", "ï¿½xito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     catch (Exception ex)
                     {
@@ -528,9 +528,9 @@ namespace SekaiPOS_1._0
 
             var lblInfo = new Label()
             {
-                Text = "Personalización Visual del Sistema",
+                Text = "PersonalizaciÃ³n Visual del Sistema",
                 Font = new Font("Segoe UI", 12F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(0, 255, 127),
+                ForeColor = ThemeManager.CurrentAccentColor,
                 Location = new Point(20, 20),
                 Size = new Size(1000, 30),
                 TextAlign = ContentAlignment.MiddleLeft
@@ -538,80 +538,176 @@ namespace SekaiPOS_1._0
 
             var lblTheme = new Label()
             {
-                Text = "Tema Actual: Oscuro (Tech Style)",
+                Text = "Tema: Oscuro (Tech Style)",
                 Font = new Font("Segoe UI", 11F),
                 ForeColor = Color.White,
-                Location = new Point(20, 80),
+                Location = new Point(20, 70),
                 AutoSize = true
             };
 
             var lblAccent = new Label()
             {
-                Text = "Color de Acento: Verde Neón (#00FF7F)",
+                Text = $"Color de Acento Actual: {ThemeManager.GetColorName(ThemeManager.CurrentAccentColor)}",
                 Font = new Font("Segoe UI", 11F),
                 ForeColor = Color.White,
-                Location = new Point(20, 120),
+                Location = new Point(20, 100),
                 AutoSize = true
             };
 
-            var lblNote = new Label()
+            var lblInstruction = new Label()
             {
-                Text = "Nota: La personalización avanzada de temas estará disponible en una próxima versión.\n" +
-                       "El tema oscuro está optimizado para tiendas de tecnología.",
-                Font = new Font("Segoe UI", 10F),
+                Text = "Click en un color para aplicarlo:",
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(180, 180, 180),
-                Location = new Point(20, 170),
-                Size = new Size(1000, 60)
+                Location = new Point(20, 140),
+                AutoSize = true
             };
 
-            var panel1 = CreateColorPreview("Verde Neón (Actual)", Color.FromArgb(0, 255, 127), 20, 250);
-            var panel2 = CreateColorPreview("Azul Eléctrico", Color.FromArgb(0, 191, 255), 170, 250);
-            var panel3 = CreateColorPreview("Púrpura", Color.FromArgb(138, 43, 226), 320, 250);
-            var panel4 = CreateColorPreview("Naranja", Color.FromArgb(255, 140, 0), 470, 250);
+            var panel1 = CreateClickableColorPreview("Verde NeÃ³n", ThemeManager.AccentColors.GreenNeon, 20, 180, lblAccent);
+            var panel2 = CreateClickableColorPreview("Azul ElÃ©ctrico", ThemeManager.AccentColors.ElectricBlue, 180, 180, lblAccent);
+            var panel3 = CreateClickableColorPreview("PÃºrpura", ThemeManager.AccentColors.Purple, 340, 180, lblAccent);
+            var panel4 = CreateClickableColorPreview("Naranja", ThemeManager.AccentColors.Orange, 20, 300, lblAccent);
+            var panel5 = CreateClickableColorPreview("Rojo", ThemeManager.AccentColors.Red, 180, 300, lblAccent);
+            var panel6 = CreateClickableColorPreview("Cyan", ThemeManager.AccentColors.Cyan, 340, 300, lblAccent);
+
+            var lblNote = new Label()
+            {
+                Text = "? Los cambios se aplican inmediatamente\n?? Se guarda automÃ¡ticamente",
+                Font = new Font("Segoe UI", 9F),
+                ForeColor = Color.FromArgb(150, 150, 150),
+                Location = new Point(520, 180),
+                Size = new Size(400, 80),
+                BackColor = Color.FromArgb(30, 30, 30),
+                Padding = new Padding(10)
+            };
+
+            var btnReset = new IconButton()
+            {
+                IconChar = IconChar.RotateBackward,
+                IconColor = Color.White,
+                IconSize = 20,
+                Text = "Restaurar Default",
+                Size = new Size(180, 45),
+                Location = new Point(520, 280),
+                BackColor = Color.FromArgb(100, 100, 100),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                TextImageRelation = TextImageRelation.ImageBeforeText,
+                Cursor = Cursors.Hand
+            };
+            btnReset.FlatAppearance.BorderSize = 0;
+            btnReset.Click += (s, e) =>
+            {
+                ThemeManager.SaveThemeToDatabase(db, ThemeManager.AccentColors.GreenNeon);
+                lblAccent.Text = $"Color de Acento Actual: {ThemeManager.GetColorName(ThemeManager.CurrentAccentColor)}";
+                lblInfo.ForeColor = ThemeManager.CurrentAccentColor;
+                MessageBox.Show("Tema restaurado a Verde NeÃ³n", "Tema Restaurado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            };
 
             panel.Controls.Add(lblInfo);
             panel.Controls.Add(lblTheme);
             panel.Controls.Add(lblAccent);
-            panel.Controls.Add(lblNote);
+            panel.Controls.Add(lblInstruction);
             panel.Controls.Add(panel1);
             panel.Controls.Add(panel2);
             panel.Controls.Add(panel3);
             panel.Controls.Add(panel4);
+            panel.Controls.Add(panel5);
+            panel.Controls.Add(panel6);
+            panel.Controls.Add(lblNote);
+            panel.Controls.Add(btnReset);
 
             tab.Controls.Add(panel);
         }
 
-        private Panel CreateColorPreview(string name, Color color, int x, int y)
+        private Panel CreateClickableColorPreview(string name, Color color, int x, int y, Label lblStatus)
         {
             var container = new Panel()
             {
-                Size = new Size(140, 100),
+                Size = new Size(150, 100),
                 Location = new Point(x, y),
-                BackColor = Color.FromArgb(30, 30, 30)
+                BackColor = Color.FromArgb(35, 35, 35),
+                Cursor = Cursors.Hand,
+                BorderStyle = BorderStyle.FixedSingle
             };
 
             var colorBox = new Panel()
             {
-                Size = new Size(100, 50),
+                Size = new Size(110, 50),
                 Location = new Point(20, 10),
-                BackColor = color
+                BackColor = color,
+                Cursor = Cursors.Hand
             };
 
             var label = new Label()
             {
                 Text = name,
-                Font = new Font("Segoe UI", 8F),
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
                 ForeColor = Color.White,
                 Location = new Point(5, 70),
-                Size = new Size(130, 25),
-                TextAlign = ContentAlignment.MiddleCenter
+                Size = new Size(140, 25),
+                TextAlign = ContentAlignment.MiddleCenter,
+                Cursor = Cursors.Hand,
+                BackColor = Color.Transparent
             };
+
+            var checkIcon = new IconPictureBox()
+            {
+                IconChar = IconChar.CheckCircle,
+                IconColor = Color.FromArgb(0, 255, 127),
+                IconSize = 24,
+                Size = new Size(24, 24),
+                Location = new Point(120, 5),
+                BackColor = Color.Transparent,
+                Visible = color == ThemeManager.CurrentAccentColor
+            };
+
+            EventHandler clickHandler = (s, e) =>
+            {
+                try
+                {
+                    ThemeManager.SaveThemeToDatabase(db, color);
+                    lblStatus.Text = $"Color de Acento Actual: {name}";
+                    var parentPanel = container.Parent;
+                    if (parentPanel != null)
+                    {
+                        foreach (Control ctrl in parentPanel.Controls)
+                        {
+                            if (ctrl is Panel p && p != container)
+                            {
+                                foreach (Control child in p.Controls)
+                                {
+                                    if (child is IconPictureBox icon && icon.IconChar == IconChar.CheckCircle)
+                                        icon.Visible = false;
+                                }
+                            }
+                        }
+                    }
+                    checkIcon.Visible = true;
+                    checkIcon.IconColor = color;
+                    MessageBox.Show($"? Tema aplicado: {name}", "Tema Actualizado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+
+            container.Click += clickHandler;
+            colorBox.Click += clickHandler;
+            label.Click += clickHandler;
+
+            container.MouseEnter += (s, e) => container.BackColor = Color.FromArgb(45, 45, 45);
+            container.MouseLeave += (s, e) => container.BackColor = Color.FromArgb(35, 35, 35);
 
             container.Controls.Add(colorBox);
             container.Controls.Add(label);
-
+            container.Controls.Add(checkIcon);
             return container;
         }
+
+        
 
         private void CreateAboutTab(TabPage tab)
         {
@@ -645,7 +741,7 @@ namespace SekaiPOS_1._0
 
             var lblVersion = new Label()
             {
-                Text = "Versión 1.0.0 - Build 2025.01",
+                Text = "Versiï¿½n 1.0.0 - Build 2025.01",
                 Font = new Font("Segoe UI", 12F),
                 ForeColor = Color.FromArgb(180, 180, 180),
                 Location = new Point(350, 200),
@@ -655,11 +751,11 @@ namespace SekaiPOS_1._0
 
             var lblDescription = new Label()
             {
-                Text = "Sistema de Punto de Venta para Tiendas de Tecnología\n\n" +
+                Text = "Sistema de Punto de Venta para Tiendas de Tecnologï¿½a\n\n" +
                        "Desarrollado con .NET 10 y Windows Forms\n" +
                        "Base de datos: SQLite\n" +
                        "UI Framework: FontAwesome.Sharp\n\n" +
-                       "© 2025 - Todos los derechos reservados",
+                       "ï¿½ 2025 - Todos los derechos reservados",
                 Font = new Font("Segoe UI", 10F),
                 ForeColor = Color.FromArgb(200, 200, 200),
                 Location = new Point(250, 250),
@@ -736,7 +832,7 @@ namespace SekaiPOS_1._0
             var lblUser = new Label() { Text = "Usuario:", ForeColor = Color.White, Location = new Point(20, 20), AutoSize = true };
             txtUsername = new TextBox() { Location = new Point(20, 45), Size = new Size(340, 25), BackColor = Color.FromArgb(35, 35, 35), ForeColor = Color.White };
 
-            var lblPass = new Label() { Text = "Contraseña:", ForeColor = Color.White, Location = new Point(20, 80), AutoSize = true };
+            var lblPass = new Label() { Text = "Contraseï¿½a:", ForeColor = Color.White, Location = new Point(20, 80), AutoSize = true };
             txtPassword = new TextBox() { Location = new Point(20, 105), Size = new Size(340, 25), PasswordChar = '*', BackColor = Color.FromArgb(35, 35, 35), ForeColor = Color.White };
 
             var lblConfirm = new Label() { Text = "Confirmar:", ForeColor = Color.White, Location = new Point(20, 140), AutoSize = true };
@@ -751,19 +847,19 @@ namespace SekaiPOS_1._0
             {
                 if (string.IsNullOrWhiteSpace(txtUsername.Text))
                 {
-                    MessageBox.Show("Ingresa un nombre de usuario", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Ingresa un nombre de usuario", "Validaciï¿½n", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     this.DialogResult = DialogResult.None;
                     return;
                 }
                 if (txtPassword.Text != txtConfirm.Text)
                 {
-                    MessageBox.Show("Las contraseñas no coinciden", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Las contraseï¿½as no coinciden", "Validaciï¿½n", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     this.DialogResult = DialogResult.None;
                     return;
                 }
                 if (txtPassword.Text.Length < 4)
                 {
-                    MessageBox.Show("La contraseña debe tener al menos 4 caracteres", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("La contraseï¿½a debe tener al menos 4 caracteres", "Validaciï¿½n", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     this.DialogResult = DialogResult.None;
                     return;
                 }
@@ -802,7 +898,7 @@ namespace SekaiPOS_1._0
 
         private void InitializeDialog()
         {
-            this.Text = "Cambiar Contraseña";
+            this.Text = "Cambiar Contraseï¿½a";
             this.Size = new Size(400, 250);
             this.StartPosition = FormStartPosition.CenterParent;
             this.BackColor = Color.FromArgb(25, 25, 25);
@@ -813,7 +909,7 @@ namespace SekaiPOS_1._0
             var lblUser = new Label() { Text = "Usuario:", ForeColor = Color.White, Location = new Point(20, 20), AutoSize = true };
             txtUsername = new TextBox() { Location = new Point(20, 45), Size = new Size(340, 25), BackColor = Color.FromArgb(35, 35, 35), ForeColor = Color.White };
 
-            var lblPass = new Label() { Text = "Nueva Contraseña:", ForeColor = Color.White, Location = new Point(20, 80), AutoSize = true };
+            var lblPass = new Label() { Text = "Nueva Contraseï¿½a:", ForeColor = Color.White, Location = new Point(20, 80), AutoSize = true };
             txtNewPassword = new TextBox() { Location = new Point(20, 105), Size = new Size(340, 25), PasswordChar = '*', BackColor = Color.FromArgb(35, 35, 35), ForeColor = Color.White };
 
             var lblConfirm = new Label() { Text = "Confirmar:", ForeColor = Color.White, Location = new Point(20, 140), AutoSize = true };
@@ -826,19 +922,19 @@ namespace SekaiPOS_1._0
             {
                 if (string.IsNullOrWhiteSpace(txtUsername.Text))
                 {
-                    MessageBox.Show("Ingresa el nombre de usuario", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Ingresa el nombre de usuario", "Validaciï¿½n", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     this.DialogResult = DialogResult.None;
                     return;
                 }
                 if (txtNewPassword.Text != txtConfirm.Text)
                 {
-                    MessageBox.Show("Las contraseñas no coinciden", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Las contraseï¿½as no coinciden", "Validaciï¿½n", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     this.DialogResult = DialogResult.None;
                     return;
                 }
                 if (txtNewPassword.Text.Length < 4)
                 {
-                    MessageBox.Show("La contraseña debe tener al menos 4 caracteres", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("La contraseï¿½a debe tener al menos 4 caracteres", "Validaciï¿½n", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     this.DialogResult = DialogResult.None;
                     return;
                 }

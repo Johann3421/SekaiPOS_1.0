@@ -1,8 +1,4 @@
-using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Windows.Forms;
-using FontAwesome.Sharp;
+ï»¿using FontAwesome.Sharp;
 
 namespace SekaiPOS_1._0
 {
@@ -29,6 +25,8 @@ namespace SekaiPOS_1._0
         public MainDashboardFinal()
         {
             db = new DatabaseHelper();
+            ThemeManager.LoadThemeFromDatabase(db);
+            ThemeManager.OnThemeChanged += (s, e) => ApplyCurrentTheme();
             InitializeComponent();
         }
 
@@ -93,7 +91,7 @@ namespace SekaiPOS_1._0
             btnInventory = CreateMenuButton(IconChar.BoxesStacked, "Inventario", 230);
             btnSales = CreateMenuButton(IconChar.CashRegister, "Ventas", 300);
             btnReports = CreateMenuButton(IconChar.FileInvoiceDollar, "Reportes", 370);
-            btnSettings = CreateMenuButton(IconChar.Gear, "Configuración", 440);
+            btnSettings = CreateMenuButton(IconChar.Gear, "Configuraciï¿½n", 440);
 
             leftBorderBtn = new Panel()
             {
@@ -183,7 +181,7 @@ namespace SekaiPOS_1._0
                 IconChar = IconChar.ArrowRightFromBracket,
                 IconColor = Color.White,
                 IconSize = 22,
-                Text = "Cerrar Sesión",
+                Text = "Cerrar Sesiï¿½n",
                 Size = new Size(150, 45),
                 Location = new Point(topPanel.Width - 170, 22),
                 FlatStyle = FlatStyle.Flat,
@@ -198,7 +196,7 @@ namespace SekaiPOS_1._0
             btnLogout.FlatAppearance.MouseOverBackColor = Color.FromArgb(220, 0, 0);
             btnLogout.Click += (s, e) =>
             {
-                if (MessageBox.Show("¿Deseas cerrar sesión?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show("ï¿½Deseas cerrar sesiï¿½n?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     dateTimeTimer.Stop();
                     this.Close();
@@ -231,6 +229,29 @@ namespace SekaiPOS_1._0
 
             ActivateButton(btnDashboard);
             OpenDashboardHome();
+            ApplyCurrentTheme();
+        }
+
+        private void ApplyCurrentTheme()
+        {
+            try
+            {
+                ThemeManager.ApplyTheme(this);
+                if (leftBorderBtn != null) leftBorderBtn.BackColor = ThemeManager.CurrentAccentColor;
+                if (currentButton != null)
+                {
+                    currentButton.ForeColor = ThemeManager.CurrentAccentColor;
+                    currentButton.IconColor = ThemeManager.CurrentAccentColor;
+                }
+                if (iconCurrentForm != null) iconCurrentForm.IconColor = ThemeManager.CurrentAccentColor;
+                if (currentChildForm != null)
+                {
+                    ThemeManager.ApplyTheme(currentChildForm);
+                    currentChildForm.Refresh();
+                }
+                this.Refresh();
+            }
+            catch { }
         }
 
         private IconButton CreateMenuButton(IconChar icon, string text, int yPosition)
@@ -441,7 +462,7 @@ namespace SekaiPOS_1._0
             try
             {
                 var form = new SettingsFormFunctional(db);
-                OpenChildForm(form, IconChar.Gear, "Configuración");
+                OpenChildForm(form, IconChar.Gear, "Configuraciï¿½n");
             }
             catch (Exception ex)
             {

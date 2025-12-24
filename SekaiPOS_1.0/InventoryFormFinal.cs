@@ -1,7 +1,3 @@
-using System;
-using System.Data;
-using System.Drawing;
-using System.Windows.Forms;
 using FontAwesome.Sharp;
 using OfficeOpenXml;
 
@@ -23,7 +19,7 @@ namespace SekaiPOS_1._0
         {
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
-                
+
             db = database;
             InitializeComponent();
             this.Shown += (s, e) => LoadProducts();
@@ -190,7 +186,7 @@ namespace SekaiPOS_1._0
                 dgvProducts.DataSource = null;
                 dgvProducts.Columns.Clear();
                 dgvProducts.DataSource = dt;
-                
+
                 if (dgvProducts.Columns.Count > 0)
                 {
                     if (dgvProducts.Columns.Contains("Id"))
@@ -198,38 +194,38 @@ namespace SekaiPOS_1._0
                         dgvProducts.Columns["Id"].HeaderText = "ID";
                         dgvProducts.Columns["Id"].Width = 50;
                     }
-                    
+
                     if (dgvProducts.Columns.Contains("Name"))
                     {
                         dgvProducts.Columns["Name"].HeaderText = "Nombre del Producto";
                         dgvProducts.Columns["Name"].Width = 250;
                     }
-                    
+
                     if (dgvProducts.Columns.Contains("Description"))
                     {
                         dgvProducts.Columns["Description"].HeaderText = "Descripción";
                         dgvProducts.Columns["Description"].Width = 300;
                     }
-                    
+
                     if (dgvProducts.Columns.Contains("Price"))
                     {
                         dgvProducts.Columns["Price"].HeaderText = "Precio";
                         dgvProducts.Columns["Price"].DefaultCellStyle.Format = "C2";
                         dgvProducts.Columns["Price"].Width = 100;
                     }
-                    
+
                     if (dgvProducts.Columns.Contains("Quantity"))
                     {
                         dgvProducts.Columns["Quantity"].HeaderText = "Stock";
                         dgvProducts.Columns["Quantity"].Width = 80;
                     }
-                    
+
                     if (dgvProducts.Columns.Contains("Category"))
                     {
                         dgvProducts.Columns["Category"].HeaderText = "Categoría";
                         dgvProducts.Columns["Category"].Width = 120;
                     }
-                    
+
                     if (dgvProducts.Columns.Contains("Barcode"))
                     {
                         dgvProducts.Columns["Barcode"].HeaderText = "Código de Barras";
@@ -418,7 +414,7 @@ namespace SekaiPOS_1._0
                         }
 
                         string fileExtension = System.IO.Path.GetExtension(openFileDialog.FileName).ToLower();
-                        
+
                         if (fileExtension == ".csv")
                         {
                             ImportFromCSV(openFileDialog.FileName);
@@ -434,7 +430,7 @@ namespace SekaiPOS_1._0
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Error al importar archivo:\n{ex.Message}\n\nPor favor verifica que:\n- El archivo sea válido\n- Use el formato correcto\n- La primera línea sea el encabezado", 
+                        MessageBox.Show($"Error al importar archivo:\n{ex.Message}\n\nPor favor verifica que:\n- El archivo sea válido\n- Use el formato correcto\n- La primera línea sea el encabezado",
                             "Error de Importación", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
@@ -475,11 +471,11 @@ namespace SekaiPOS_1._0
 
                     string name = parts[0].Trim().Trim('"');
                     string description = parts.Length > 1 ? parts[1].Trim().Trim('"') : "";
-                    
+
                     // Parseo mejorado de precio
                     string priceStr = parts.Length > 2 ? parts[2].Trim().Replace("\"", "") : "0";
                     priceStr = priceStr.Replace(",", ".");
-                    
+
                     if (!decimal.TryParse(priceStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal price))
                     {
                         errorCount++;
@@ -635,7 +631,7 @@ namespace SekaiPOS_1._0
                 message += $"\n? {errorCount} errores encontrados\n\nDetalles de errores:\n{errorDetails}";
             }
 
-            MessageBox.Show(message, "Resultado de Importación", MessageBoxButtons.OK, 
+            MessageBox.Show(message, "Resultado de Importación", MessageBoxButtons.OK,
                 errorCount > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
         }
     }

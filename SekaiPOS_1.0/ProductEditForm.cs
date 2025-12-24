@@ -1,6 +1,3 @@
-using System;
-using System.Drawing;
-using System.Windows.Forms;
 using FontAwesome.Sharp;
 
 namespace SekaiPOS_1._0
@@ -21,7 +18,7 @@ namespace SekaiPOS_1._0
             db = database;
             productId = id;
             InitializeComponent();
-            
+
             if (productId.HasValue)
             {
                 LoadProductData();
@@ -168,7 +165,7 @@ namespace SekaiPOS_1._0
             {
                 var dt = db.GetAllProducts();
                 var rows = dt.Select($"Id = {productId}");
-                
+
                 if (rows.Length > 0)
                 {
                     var row = rows[0];

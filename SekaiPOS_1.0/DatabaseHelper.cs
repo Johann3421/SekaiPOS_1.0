@@ -96,19 +96,23 @@ namespace SekaiPOS_1._0
                                                   VALUES ('SEKAI Tech Store', 'Av. Principal #123, Ciudad', '+1 234 567 8900', 0.16, 'Dark', '#00FF7F', 'Bienvenido a SEKAI POS', '¡Gracias por su compra!')";
                     insertCommand.ExecuteNonQuery();
                 }
-                
+
                 // Ensure new columns exist (migration for existing DB)
-                try {
+                try
+                {
                     var alterCmd = connection.CreateCommand();
                     alterCmd.CommandText = "ALTER TABLE Settings ADD COLUMN ReceiptHeader TEXT DEFAULT ''";
                     alterCmd.ExecuteNonQuery();
-                } catch { } // Ignore if exists
-                
-                try {
+                }
+                catch { } // Ignore if exists
+
+                try
+                {
                     var alterCmd = connection.CreateCommand();
                     alterCmd.CommandText = "ALTER TABLE Settings ADD COLUMN ReceiptFooter TEXT DEFAULT '¡Gracias por su compra!'";
                     alterCmd.ExecuteNonQuery();
-                } catch { } // Ignore if exists
+                }
+                catch { } // Ignore if exists
             }
         }
 
@@ -244,7 +248,7 @@ namespace SekaiPOS_1._0
                         saleCmd.Parameters.AddWithValue("@total", total);
                         saleCmd.Parameters.AddWithValue("@user", CurrentUser.Username);
                         saleCmd.Parameters.AddWithValue("@payment", paymentMethod);
-                        
+
                         long saleId = (long)saleCmd.ExecuteScalar()!;
 
                         foreach (var item in items)
@@ -288,7 +292,7 @@ namespace SekaiPOS_1._0
                 cmd.CommandText = @"SELECT ProductName, Quantity, Price, Subtotal 
                                    FROM SaleItems WHERE SaleId = @id";
                 cmd.Parameters.AddWithValue("@id", saleId);
-                
+
                 using (var reader = cmd.ExecuteReader())
                 {
                     var dt = new DataTable();
@@ -306,7 +310,7 @@ namespace SekaiPOS_1._0
                 var cmd = connection.CreateCommand();
                 cmd.CommandText = "SELECT SaleDate, Total, PaymentMethod FROM Sales WHERE Id = @id";
                 cmd.Parameters.AddWithValue("@id", saleId);
-                
+
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
@@ -359,7 +363,7 @@ namespace SekaiPOS_1._0
                 connection.Open();
                 var cmd = connection.CreateCommand();
                 cmd.CommandText = "SELECT StoreName, Address, Phone, TaxRate, ReceiptHeader, ReceiptFooter FROM Settings LIMIT 1";
-                
+
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
@@ -385,7 +389,7 @@ namespace SekaiPOS_1._0
                 connection.Open();
                 var cmd = connection.CreateCommand();
                 cmd.CommandText = "SELECT Theme, AccentColor FROM Settings LIMIT 1";
-                
+
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
@@ -469,7 +473,7 @@ namespace SekaiPOS_1._0
                 return result == null ? null : Convert.ToInt32(result);
             }
         }
-        
+
         public bool IsRegisterOpen()
         {
             return GetOpenRegisterSessionId().HasValue;
@@ -482,7 +486,7 @@ namespace SekaiPOS_1._0
                 connection.Open();
                 var cmd = connection.CreateCommand();
                 cmd.CommandText = "SELECT Id, Username, IsAdmin FROM Users ORDER BY Username";
-                
+
                 using (var reader = cmd.ExecuteReader())
                 {
                     var dt = new DataTable();

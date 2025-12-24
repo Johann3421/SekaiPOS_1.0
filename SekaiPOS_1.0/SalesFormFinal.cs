@@ -1,10 +1,5 @@
-using System;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Windows.Forms;
 using FontAwesome.Sharp;
-using System.Collections.Generic;
+using System.Data;
 
 namespace SekaiPOS_1._0
 {
@@ -23,7 +18,7 @@ namespace SekaiPOS_1._0
         private IconButton btnOpenRegister = null!;
         private IconButton btnCloseRegister = null!;
         private Panel salesPanel = null!;
-        
+
         private List<SaleItem> cartItems = new List<SaleItem>();
         private const decimal TAX_RATE = 0.16m;
 
@@ -31,11 +26,12 @@ namespace SekaiPOS_1._0
         {
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
-                
+
             db = database;
             InitializeComponent();
-            
-            this.Shown += (s, e) => {
+
+            this.Shown += (s, e) =>
+            {
                 CheckRegisterStatus();
                 LoadProducts();
             };
@@ -455,9 +451,11 @@ namespace SekaiPOS_1._0
                         try
                         {
                             var dt = db.GetAllUsers();
-                            int userId = 1; 
-                            foreach(DataRow row in dt.Rows) {
-                                if (row["Username"].ToString() == CurrentUser.Username) {
+                            int userId = 1;
+                            foreach (DataRow row in dt.Rows)
+                            {
+                                if (row["Username"].ToString() == CurrentUser.Username)
+                                {
                                     userId = Convert.ToInt32(row["Id"]);
                                     break;
                                 }
@@ -518,7 +516,7 @@ namespace SekaiPOS_1._0
             dgvCart.Columns.Add("Quantity", "Cant.");
             dgvCart.Columns.Add("Price", "Precio Unit.");
             dgvCart.Columns.Add("Subtotal", "Subtotal");
-            
+
             dgvCart.Columns["ProductName"].Width = 200;
             dgvCart.Columns["Quantity"].Width = 70;
             dgvCart.Columns["Price"].Width = 100;
@@ -541,40 +539,40 @@ namespace SekaiPOS_1._0
                 dgvProducts.DataSource = null;
                 dgvProducts.Columns.Clear();
                 dgvProducts.DataSource = dt;
-                
+
                 if (dgvProducts.Columns.Count > 0)
                 {
                     if (dgvProducts.Columns.Contains("Id"))
                         dgvProducts.Columns["Id"].Visible = false;
-                    
+
                     if (dgvProducts.Columns.Contains("Name"))
                     {
                         dgvProducts.Columns["Name"].HeaderText = "Producto";
                         dgvProducts.Columns["Name"].Width = 200;
                     }
-                    
+
                     if (dgvProducts.Columns.Contains("Price"))
                     {
                         dgvProducts.Columns["Price"].HeaderText = "Precio";
                         dgvProducts.Columns["Price"].DefaultCellStyle.Format = "C2";
                         dgvProducts.Columns["Price"].Width = 100;
                     }
-                    
+
                     if (dgvProducts.Columns.Contains("Quantity"))
                     {
                         dgvProducts.Columns["Quantity"].HeaderText = "Stock";
                         dgvProducts.Columns["Quantity"].Width = 70;
                     }
-                    
+
                     if (dgvProducts.Columns.Contains("Description"))
                         dgvProducts.Columns["Description"].Visible = false;
-                    
+
                     if (dgvProducts.Columns.Contains("Category"))
                     {
                         dgvProducts.Columns["Category"].HeaderText = "Categoría";
                         dgvProducts.Columns["Category"].Width = 120;
                     }
-                    
+
                     if (dgvProducts.Columns.Contains("Barcode"))
                         dgvProducts.Columns["Barcode"].Visible = false;
                 }
@@ -622,7 +620,7 @@ namespace SekaiPOS_1._0
             {
                 var dt = db.GetAllProducts();
                 var rows = dt.Select($"Barcode = '{barcode}'");
-                
+
                 if (rows.Length > 0)
                 {
                     var row = rows[0];
